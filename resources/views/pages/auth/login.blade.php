@@ -1,54 +1,70 @@
-<x-layouts::auth :title="__('Log in')">
-    <div class="flex flex-col gap-6">
-        <x-auth-header :title="__('Log in to your account')" :description="__('Enter your email and password below to log in')" />
+<x-layouts::auth.split :title="__('Sign in')">
 
-        <!-- Session Status -->
+    <div class="flex flex-col gap-6">
+
+        <div>
+            <p class="text-sm font-medium text-neutral-500 dark:text-neutral-400">
+                Dynamic CMS
+            </p>
+
+            <h1 class="mt-2 text-3xl font-semibold tracking-tight text-neutral-900 dark:text-white">
+                Welcome back
+            </h1>
+
+            <p class="mt-2 text-sm leading-6 text-neutral-600 dark:text-neutral-400">
+                Sign in to access your dashboard and manage your digital content.
+            </p>
+        </div>
+
+        {{-- Session Status --}}
         <x-auth-session-status class="text-center" :status="session('status')" />
 
-
-        <form method="POST" action="{{ route('login.store') }}" class="flex flex-col gap-6">
+        <form method="POST" action="{{ route('login.store') }}" class="flex flex-col gap-5">
             @csrf
 
-            <!-- Email Address -->
-            <flux:input
-                name="email"
-                :label="__('Email address')"
-                :value="old('email')"
-                type="email"
-                required
-                autofocus
-                autocomplete="email"
-                placeholder="email@example.com"
-            />
+            {{-- Email --}}
+            <flux:input name="email" label="Email address" :value="old('email')" type="email" required autofocus
+                autocomplete="email" placeholder="name@example.com" />
 
-            <!-- Password -->
-            <div class="relative">
-                <flux:input
-                    name="password"
-                    :label="__('Password')"
-                    type="password"
-                    required
-                    autocomplete="current-password"
-                    :placeholder="__('Password')"
-                    viewable
-                />
+            {{-- Password --}}
+            <div class="flex flex-col gap-2">
 
-                @if (Route::has('password.request'))
-                    <flux:link class="absolute top-0 text-sm end-0" :href="route('password.request')" wire:navigate>
-                        {{ __('Forgot your password?') }}
-                    </flux:link>
-                @endif
+                <div class="flex items-center justify-between">
+                    <label for="password" class="text-sm font-medium text-neutral-700 dark:text-neutral-300">
+                        Password
+                    </label>
+
+                    @if (Route::has('password.request'))
+                        <flux:link href="{{ route('password.request') }}" class="text-sm" wire:navigate>
+                            Forgot password?
+                        </flux:link>
+                    @endif
+                </div>
+
+                <flux:input id="password" name="password" type="password" required autocomplete="current-password"
+                    placeholder="Enter your password" viewable />
+
             </div>
 
-            <!-- Remember Me -->
-            <flux:checkbox name="remember" :label="__('Remember me')" :checked="old('remember')" />
+            {{-- Cloudflare Turnstile --}}
+            <div class="cf-turnstile" data-sitekey="{{ config('services.turnstile.site_key') }}"></div>
 
-            <div class="flex items-center justify-end">
-                <flux:button variant="primary" type="submit" class="w-full" data-test="login-button">
-                    {{ __('Log in') }}
-                </flux:button>
-            </div>
+            @error('cf-turnstile-response')
+                <p class="text-sm text-red-600">
+                    {{ $message }}
+                </p>
+            @enderror
+
+            {{-- Remember --}}
+            <flux:checkbox name="remember" label="Remember me" :checked="old('remember')" />
+
+            {{-- Submit --}}
+            <flux:button variant="primary" type="submit" class="w-full" data-test="login-button">
+                Sign in
+            </flux:button>
+
         </form>
 
     </div>
-</x-layouts::auth>
+
+</x-layouts::auth.split>

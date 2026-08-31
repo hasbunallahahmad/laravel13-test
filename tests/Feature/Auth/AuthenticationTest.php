@@ -1,7 +1,17 @@
 <?php
 
 use App\Models\User;
-use Laravel\Fortify\Features;
+use App\Services\Security\TurnstileService;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+
+uses(RefreshDatabase::class);
+
+beforeEach(function (): void {
+    $this->mock(TurnstileService::class, function ($mock): void {
+        $mock->shouldReceive('verify')
+            ->andReturn(true);
+    });
+});
 
 test('login screen can be rendered', function () {
     $response = $this->get(route('login'));
@@ -9,57 +19,86 @@ test('login screen can be rendered', function () {
     $response->assertOk();
 });
 
-test('users can authenticate using the login screen', function () {
+test('active users can authenticate with valid credentials and valid turnstile', function () {
     $user = User::factory()->create();
 
     $response = $this->post(route('login.store'), [
         'email' => $user->email,
         'password' => 'password',
+        'cf-turnstile-response' => 'test-valid-token',
     ]);
 
     $response
         ->assertSessionHasNoErrors()
         ->assertRedirect(route('dashboard', absolute: false));
 
-    $this->assertAuthenticated();
+    $this->assertAuthenticatedAs($user);
 });
 
-test('users can not authenticate with invalid password', function () {
+test('users cannot authenticate with an invalid password', function () {
     $user = User::factory()->create();
 
     $response = $this->post(route('login.store'), [
         'email' => $user->email,
         'password' => 'wrong-password',
+        'cf-turnstile-response' => 'test-valid-token',
     ]);
 
-    $response->assertSessionHasErrorsIn('email');
+    $response->assertSessionHasErrors('email');
 
     $this->assertGuest();
 });
 
-test('users with two factor enabled are redirected to two factor challenge', function () {
-    $this->skipUnlessFortifyHas(Features::twoFactorAuthentication());
-
-    Features::twoFactorAuthentication([
-        'confirm' => true,
-        'confirmPassword' => true,
+test('users cannot authenticate with an unknown email address', function () {
+    $response = $this->post(route('login.store'), [
+        'email' => 'unknown@example.test',
+        'password' => 'password',
+        'cf-turnstile-response' => 'test-valid-token',
     ]);
 
-    $user = User::factory()->withTwoFactor()->create();
+    $response->assertSessionHasErrors('email');
+
+    $this->assertGuest();
+});
+
+test('inactive users cannot authenticate', function () {
+    $user = User::factory()
+        ->inactive()
+        ->create();
 
     $response = $this->post(route('login.store'), [
         'email' => $user->email,
         'password' => 'password',
+        'cf-turnstile-response' => 'test-valid-token',
     ]);
 
-    $response->assertRedirect(route('two-factor.login'));
+    $response->assertForbidden();
+
     $this->assertGuest();
 });
 
-test('users can logout', function () {
+test('soft deleted users cannot authenticate', function () {
     $user = User::factory()->create();
 
-    $response = $this->actingAs($user)->post(route('logout'));
+    $user->delete();
+
+    $response = $this->post(route('login.store'), [
+        'email' => $user->email,
+        'password' => 'password',
+        'cf-turnstile-response' => 'test-valid-token',
+    ]);
+
+    $response->assertSessionHasErrors('email');
+
+    $this->assertGuest();
+});
+
+test('authenticated users can logout', function () {
+    $user = User::factory()->create();
+
+    $response = $this
+        ->actingAs($user)
+        ->post(route('logout'));
 
     $response->assertRedirect(route('home'));
 

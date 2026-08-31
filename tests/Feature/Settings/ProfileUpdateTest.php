@@ -1,12 +1,14 @@
 <?php
 
 use App\Models\User;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Livewire;
 
 test('profile page is displayed', function () {
     $this->actingAs($user = User::factory()->create());
 
-    $this->get(route('profile.edit'))->assertOk();
+    $this->get(route('profile.edit'))
+        ->assertOk();
 });
 
 test('profile information can be updated', function () {
@@ -14,17 +16,16 @@ test('profile information can be updated', function () {
 
     $this->actingAs($user);
 
-    $response = Livewire::test('pages::settings.profile')
+    Livewire::test('pages::settings.profile')
         ->set('name', 'Test User')
         ->set('email', 'test@example.com')
-        ->call('updateProfileInformation');
-
-    $response->assertHasNoErrors();
+        ->call('updateProfileInformation')
+        ->assertHasNoErrors();
 
     $user->refresh();
 
-    expect($user->name)->toEqual('Test User');
-    expect($user->email)->toEqual('test@example.com');
+    expect($user->name)->toBe('Test User');
+    expect($user->email)->toBe('test@example.com');
     expect($user->email_verified_at)->toBeNull();
 });
 
@@ -33,31 +34,65 @@ test('email verification status is unchanged when email address is unchanged', f
 
     $this->actingAs($user);
 
-    $response = Livewire::test('pages::settings.profile')
+    Livewire::test('pages::settings.profile')
         ->set('name', 'Test User')
         ->set('email', $user->email)
-        ->call('updateProfileInformation');
+        ->call('updateProfileInformation')
+        ->assertHasNoErrors();
 
-    $response->assertHasNoErrors();
-
-    expect($user->refresh()->email_verified_at)->not->toBeNull();
+    expect(
+        $user->refresh()->email_verified_at
+    )->not->toBeNull();
 });
 
-test('user can delete their account', function () {
+test('user can soft delete their account with correct password', function () {
     $user = User::factory()->create();
 
     $this->actingAs($user);
 
-    $response = Livewire::test('pages::settings.delete-user-modal')
+    Livewire::test('pages::settings.delete-user-modal')
         ->set('password', 'password')
-        ->call('deleteUser');
+        ->call('deleteUser')
+        ->assertHasNoErrors();
 
-    $response
-        ->assertHasNoErrors()
-        ->assertRedirect('/');
+    /*
+    |--------------------------------------------------------------------------
+    | SECURITY CHECK
+    |--------------------------------------------------------------------------
+    |
+    | User tidak boleh ditemukan melalui query normal.
+    |
+    */
 
-    expect($user->fresh())->toBeNull();
-    expect(auth()->check())->toBeFalse();
+    expect(
+        User::find($user->id)
+    )->toBeNull();
+
+    /*
+    |--------------------------------------------------------------------------
+    | SOFT DELETE CHECK
+    |--------------------------------------------------------------------------
+    |
+    | Record harus tetap berada di database.
+    |
+    */
+
+    $deletedUser = User::withTrashed()
+        ->find($user->id);
+
+    expect($deletedUser)->not->toBeNull();
+
+    expect($deletedUser->trashed())
+        ->toBeTrue();
+
+    /*
+    |--------------------------------------------------------------------------
+    | SESSION SECURITY CHECK
+    |--------------------------------------------------------------------------
+    */
+
+    expect(Auth::check())
+        ->toBeFalse();
 });
 
 test('correct password must be provided to delete account', function () {
@@ -65,11 +100,28 @@ test('correct password must be provided to delete account', function () {
 
     $this->actingAs($user);
 
-    $response = Livewire::test('pages::settings.delete-user-modal')
+    Livewire::test('pages::settings.delete-user-modal')
         ->set('password', 'wrong-password')
-        ->call('deleteUser');
+        ->call('deleteUser')
+        ->assertHasErrors(['password']);
 
-    $response->assertHasErrors(['password']);
+    /*
+    |--------------------------------------------------------------------------
+    | WORST CASE PROTECTION
+    |--------------------------------------------------------------------------
+    |
+    | Password salah tidak boleh menghapus user.
+    |
+    */
 
-    expect($user->fresh())->not->toBeNull();
+    expect(
+        User::find($user->id)
+    )->not->toBeNull();
+
+    expect(
+        User::withTrashed()->find($user->id)->trashed()
+    )->toBeFalse();
+
+    expect(Auth::check())
+        ->toBeTrue();
 });
