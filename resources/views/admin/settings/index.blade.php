@@ -1,13 +1,15 @@
-@extends('layouts.app')
+<x-layouts::admin :title="__('Settings')">
+    <div class="space-y-6">
+        <div>
+            <flux:heading size="xl">
+                {{ __('Settings') }}
+            </flux:heading>
 
-@section('title', 'Settings')
-
-@section('content')
-
-    <div>
-        <h1>Settings</h1>
+            <flux:text class="mt-2">
+                {{ __('Manage website settings.') }}
+            </flux:text>
+        </div>
 
         {{-- Konten settings --}}
     </div>
-
-@endsection
+</x-layouts::admin>

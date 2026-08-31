@@ -1,42 +1,83 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\Settings\SettingController;
+use Illuminate\Support\Facades\Route;
+
+/*
+|--------------------------------------------------------------------------
+| Public
+|--------------------------------------------------------------------------
+*/
 
 Route::get('/', function () {
     return view('welcome');
 })->name('home');
 
-Route::view('dashboard', 'dashboard')
-    ->middleware([
-        'auth',
-        'permission:dashboard.view',
-    ])
-    ->name('dashboard');
+
+/*
+|--------------------------------------------------------------------------
+| User Dashboard
+|--------------------------------------------------------------------------
+|
+| Dashboard utama aplikasi setelah login.
+|
+*/
+
+Route::get('/dashboard', function () {
+    return view('dashboard');
+})->middleware([
+    'auth',
+    'permission:dashboard.view',
+])->name('dashboard');
+
+
+/*
+|--------------------------------------------------------------------------
+| Admin
+|--------------------------------------------------------------------------
+|
+| Seluruh area admin menggunakan prefix /admin.
+|
+*/
 
 Route::middleware(['auth'])
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {
 
-        Route::middleware('permission:settings.view')
-            ->get('/settings', [SettingController::class, 'index'])
+        /*
+        |--------------------------------------------------------------------------
+        | Admin Dashboard
+        |--------------------------------------------------------------------------
+        */
+
+        Route::get('/dashboard', function () {
+            return view('admin.dashboard.index');
+        })
+            ->middleware('permission:dashboard.view')
+            ->name('dashboard');
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Settings
+        |--------------------------------------------------------------------------
+        */
+
+        Route::get('/settings', [SettingController::class, 'index'])
+            ->middleware('permission:settings.view')
             ->name('settings.index');
 
-        Route::middleware('permission:settings.update')
-            ->put('/settings/{group}/{key}', [SettingController::class, 'update'])
+        Route::put('/settings/{group}/{key}', [SettingController::class, 'update'])
+            ->middleware('permission:settings.update')
             ->name('settings.update');
     });
 
-// Route::prefix('admin')
-//     ->middleware(['auth'])
-//     ->group(function () {
 
-//         Route::get('/settings', [SettingController::class, 'index'])
-//             ->middleware('permission:settings.view');
-
-//         Route::put('/settings/{group}/{key}', [SettingController::class, 'update'])
-//             ->middleware('permission:settings.update');
-//     });
+/*
+|--------------------------------------------------------------------------
+| User Settings
+|--------------------------------------------------------------------------
+*/
 
 require __DIR__ . '/settings.php';
