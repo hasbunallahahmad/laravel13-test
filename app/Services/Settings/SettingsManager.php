@@ -1,12 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services\Settings;
 
+use App\Data\Settings\SettingData;
 use App\Models\Setting;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 
-class SettingsManager
+final class SettingsManager
 {
     private const CACHE_PREFIX = 'settings.';
 
@@ -29,7 +32,7 @@ class SettingsManager
 
         $value = $this->settings->get($key);
 
-        // Jangan cache default/null untuk setting yang tidak ada.
+        // Do not cache missing/null settings.
         if ($value === null) {
             return $default;
         }
@@ -43,7 +46,7 @@ class SettingsManager
     }
 
     /**
-     * Store a setting and clear its cache.
+     * Store a setting and clear related caches.
      */
     public function set(
         string $key,
@@ -58,20 +61,52 @@ class SettingsManager
             $isPublic,
         );
 
-        $this->forget($key);
+        $this->clearRelatedCaches(
+            $key,
+            $setting->group,
+        );
 
         return $setting;
     }
 
     /**
-     * Delete a setting and clear its cache.
+     * Store or update a setting using a DTO.
+     */
+    public function setData(
+        SettingData $data,
+    ): Setting {
+        return $this->set(
+            $data->fullKey(),
+            $data->value,
+            $data->type,
+            $data->isPublic,
+        );
+    }
+
+    /**
+     * Get all settings.
+     *
+     * @return Collection<int, Setting>
+     */
+    public function all(): Collection
+    {
+        return $this->settings->all();
+    }
+
+    /**
+     * Delete a setting and clear related caches.
      */
     public function delete(string $key): bool
     {
+        [$group] = explode('.', $key, 2);
+
         $deleted = $this->settings->delete($key);
 
         if ($deleted) {
-            $this->forget($key);
+            $this->clearRelatedCaches(
+                $key,
+                $group,
+            );
         }
 
         return $deleted;
@@ -99,9 +134,7 @@ class SettingsManager
     {
         return Cache::rememberForever(
             self::CACHE_PREFIX . 'public',
-            fn(): Collection => Setting::query()
-                ->where('is_public', true)
-                ->get(),
+            fn(): Collection => $this->settings->public(),
         );
     }
 
@@ -112,6 +145,26 @@ class SettingsManager
     {
         return Cache::forget(
             $this->cacheKey($key),
+        );
+    }
+
+    /**
+     * Clear caches affected by a setting change.
+     */
+    private function clearRelatedCaches(
+        string $key,
+        string $group,
+    ): void {
+        Cache::forget(
+            $this->cacheKey($key),
+        );
+
+        Cache::forget(
+            self::CACHE_PREFIX . 'group.' . $group,
+        );
+
+        Cache::forget(
+            self::CACHE_PREFIX . 'public',
         );
     }
 

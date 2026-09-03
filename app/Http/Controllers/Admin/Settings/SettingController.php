@@ -7,7 +7,7 @@ namespace App\Http\Controllers\Admin\Settings;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Settings\UpdateSettingRequest;
 use App\Models\Setting;
-use App\Services\Settings\SettingService;
+use App\Services\Settings\SettingsManager;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
@@ -15,7 +15,7 @@ use Illuminate\View\View;
 final class SettingController extends Controller
 {
     public function __construct(
-        private readonly SettingService $settingService,
+        private readonly SettingsManager $settings,
     ) {}
 
     /**
@@ -29,7 +29,21 @@ final class SettingController extends Controller
         );
 
         return view('admin.settings.index', [
-            'settings' => $this->settingService->all(),
+            'settings' => $this->settings->all(),
+        ]);
+    }
+
+    public function edit(
+        string $group,
+        string $key,
+    ): View {
+        $setting = Setting::query()
+            ->where('group', $group)
+            ->where('key', $key)
+            ->firstOrFail();
+
+        return view('admin.settings.edit', [
+            'setting' => $setting,
         ]);
     }
 
@@ -44,7 +58,7 @@ final class SettingController extends Controller
             403,
         );
 
-        $this->settingService->setData(
+        $this->settings->setData(
             $request->toData(),
         );
 

@@ -56,12 +56,19 @@ class RolePermissionSeeder extends Seeder
             'content.update',
             'content.delete',
             'content.publish',
+            'content.restore',
+            'content.force-delete',
 
             // Media
             'media.view',
-            'media.upload',
+            'media.create',
             'media.update',
             'media.delete',
+            'media.restore',
+            'media.force-delete',
+
+            // Menus
+            'menus.view',
         ];
 
         foreach ($permissions as $permission) {
@@ -135,9 +142,12 @@ class RolePermissionSeeder extends Seeder
             'content.update',
             'content.delete',
             'content.publish',
+            'content.restore',
+            'content.force-delete',
+
 
             'media.view',
-            'media.upload',
+            'media.create',
             'media.update',
             'media.delete',
 
@@ -158,9 +168,10 @@ class RolePermissionSeeder extends Seeder
             'content.update',
             'content.delete',
             'content.publish',
+            'content.restore',
 
             'media.view',
-            'media.upload',
+            'media.create',
             'media.update',
             'media.delete',
         ]);
@@ -179,7 +190,7 @@ class RolePermissionSeeder extends Seeder
             'content.update',
 
             'media.view',
-            'media.upload',
+            'media.create',
         ]);
 
         /*
@@ -195,7 +206,7 @@ class RolePermissionSeeder extends Seeder
             'content.create',
 
             'media.view',
-            'media.upload',
+            'media.create',
         ]);
 
         /*

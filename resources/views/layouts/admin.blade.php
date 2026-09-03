@@ -16,10 +16,18 @@
 
         <flux:sidebar.nav>
             <flux:sidebar.group :heading="__('Administration')" class="grid">
+
                 @can('dashboard.view')
                     <flux:sidebar.item icon="layout-grid" :href="route('admin.dashboard')"
                         :current="request()->routeIs('admin.dashboard')" wire:navigate>
                         {{ __('Dashboard') }}
+                    </flux:sidebar.item>
+                @endcan
+
+                @can('content.view')
+                    <flux:sidebar.item icon="document-text" :href="route('admin.contents.index')"
+                        :current="request()->routeIs('admin.contents.*')" wire:navigate>
+                        {{ __('Content') }}
                     </flux:sidebar.item>
                 @endcan
 
@@ -29,6 +37,7 @@
                         {{ __('Settings') }}
                     </flux:sidebar.item>
                 @endcan
+
             </flux:sidebar.group>
         </flux:sidebar.nav>
 

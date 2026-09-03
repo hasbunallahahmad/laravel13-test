@@ -8,22 +8,11 @@ use Spatie\Permission\Models\Permission;
 beforeEach(function () {
     Permission::findOrCreate('dashboard.view');
     Permission::findOrCreate('settings.view');
-});
-
-test('authenticated user with dashboard permission can access admin dashboard', function () {
-    $user = User::factory()->create();
-
-    $user->givePermissionTo('dashboard.view');
-
-    $response = $this
-        ->actingAs($user)
-        ->get('/admin/dashboard');
-
-    $response->assertOk();
+    Permission::findOrCreate('content.view');
 });
 
 test('guest cannot access admin dashboard', function () {
-    $response = $this->get('/admin/dashboard');
+    $response = $this->get(route('admin.dashboard'));
 
     $response->assertRedirect(route('login'));
 });
@@ -33,12 +22,24 @@ test('authenticated user without dashboard permission cannot access admin dashbo
 
     $response = $this
         ->actingAs($user)
-        ->get('/admin/dashboard');
+        ->get(route('admin.dashboard'));
 
     $response->assertForbidden();
 });
 
-test('admin dashboard renders the admin shell', function () {
+test('authenticated user with dashboard permission can access admin dashboard', function () {
+    $user = User::factory()->create();
+
+    $user->givePermissionTo('dashboard.view');
+
+    $response = $this
+        ->actingAs($user)
+        ->get(route('admin.dashboard'));
+
+    $response->assertOk();
+});
+
+test('admin dashboard renders admin shell', function () {
     $user = User::factory()->create();
 
     $user->givePermissionTo('dashboard.view');
@@ -53,7 +54,21 @@ test('admin dashboard renders the admin shell', function () {
     $response->assertSee('Dashboard');
 });
 
-test('admin navigation shows settings only to authorized users', function () {
+test('admin dashboard does not render user app shell', function () {
+    $user = User::factory()->create();
+
+    $user->givePermissionTo('dashboard.view');
+
+    $response = $this
+        ->actingAs($user)
+        ->get(route('admin.dashboard'));
+
+    $response->assertOk();
+
+    $response->assertDontSee('APP LAYOUT TEST');
+});
+
+test('settings navigation is hidden without settings permission', function () {
     $user = User::factory()->create();
 
     $user->givePermissionTo('dashboard.view');
@@ -70,7 +85,7 @@ test('admin navigation shows settings only to authorized users', function () {
     );
 });
 
-test('admin navigation shows settings to users with settings permission', function () {
+test('settings navigation is visible with settings permission', function () {
     $user = User::factory()->create();
 
     $user->givePermissionTo([
@@ -90,7 +105,7 @@ test('admin navigation shows settings to users with settings permission', functi
     );
 });
 
-test('admin dashboard does not render settings navigation without permission', function () {
+test('content navigation is hidden without content permission', function () {
     $user = User::factory()->create();
 
     $user->givePermissionTo('dashboard.view');
@@ -102,17 +117,17 @@ test('admin dashboard does not render settings navigation without permission', f
     $response->assertOk();
 
     $response->assertDontSee(
-        'href="' . route('admin.settings.index') . '"',
+        'href="' . route('admin.contents.index') . '"',
         false,
     );
 });
 
-test('admin dashboard renders settings navigation with permission', function () {
+test('content navigation is visible with content permission', function () {
     $user = User::factory()->create();
 
     $user->givePermissionTo([
         'dashboard.view',
-        'settings.view',
+        'content.view',
     ]);
 
     $response = $this
@@ -122,7 +137,7 @@ test('admin dashboard renders settings navigation with permission', function () 
     $response->assertOk();
 
     $response->assertSee(
-        'href="' . route('admin.settings.index') . '"',
+        'href="' . route('admin.contents.index') . '"',
         false,
     );
 });

@@ -1,25 +1,62 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Data\Settings\SettingData;
 use App\Http\Requests\Admin\Settings\UpdateSettingRequest;
+use Illuminate\Routing\Route;
 use Illuminate\Support\Facades\Validator;
 
-function makeUpdateSettingValidator(array $data)
-{
-    $request = new UpdateSettingRequest();
+function makeUpdateSettingRequest(
+    array $data = [],
+    string $group = 'general',
+    string $key = 'site_name',
+): UpdateSettingRequest {
+    $request = UpdateSettingRequest::create(
+        "/admin/settings/{$group}/{$key}",
+        'PUT',
+        $data,
+    );
 
-    $request->merge($data);
+    $route = new Route(
+        ['PUT'],
+        '/admin/settings/{group}/{key}',
+        fn() => null,
+    );
+
+    $route->bind($request);
+
+    $route->setParameter('group', $group);
+    $route->setParameter('key', $key);
+
+    $request->setRouteResolver(
+        fn() => $route,
+    );
+
+    $request->setContainer(app());
+
+    return $request;
+}
+
+function makeUpdateSettingValidator(
+    array $data,
+    string $group = 'general',
+    string $key = 'site_name',
+) {
+    $request = makeUpdateSettingRequest(
+        $data,
+        $group,
+        $key,
+    );
 
     return Validator::make(
-        $data,
+        $request->all(),
         $request->rules(),
     );
 }
 
 test('it validates a valid string setting payload', function () {
     $validator = makeUpdateSettingValidator([
-        'group' => 'general',
-        'key' => 'site_name',
         'value' => 'Website Arpus',
         'type' => 'string',
         'is_public' => true,
@@ -28,80 +65,18 @@ test('it validates a valid string setting payload', function () {
     expect($validator->passes())->toBeTrue();
 });
 
-test('it requires a setting group', function () {
+test('it validates a valid integer setting payload', function () {
     $validator = makeUpdateSettingValidator([
-        'key' => 'site_name',
-        'value' => 'Website Arpus',
-        'type' => 'string',
-        'is_public' => true,
-    ]);
-
-    expect($validator->fails())->toBeTrue()
-        ->and($validator->errors()->has('group'))->toBeTrue();
-});
-
-test('it rejects an empty setting group', function () {
-    $validator = makeUpdateSettingValidator([
-        'group' => '',
-        'key' => 'site_name',
-        'value' => 'Website Arpus',
-        'type' => 'string',
-    ]);
-
-    expect($validator->fails())->toBeTrue()
-        ->and($validator->errors()->has('group'))->toBeTrue();
-});
-
-test('it requires a setting key', function () {
-    $validator = makeUpdateSettingValidator([
-        'group' => 'general',
-        'value' => 'Website Arpus',
-        'type' => 'string',
-    ]);
-
-    expect($validator->fails())->toBeTrue()
-        ->and($validator->errors()->has('key'))->toBeTrue();
-});
-
-test('it rejects an empty setting key', function () {
-    $validator = makeUpdateSettingValidator([
-        'group' => 'general',
-        'key' => '',
-        'value' => 'Website Arpus',
-        'type' => 'string',
-    ]);
-
-    expect($validator->fails())->toBeTrue()
-        ->and($validator->errors()->has('key'))->toBeTrue();
-});
-
-test('it requires a supported setting type', function () {
-    $validator = makeUpdateSettingValidator([
-        'group' => 'general',
-        'key' => 'site_name',
-        'value' => 'Website Arpus',
-        'type' => 'unsupported',
-    ]);
-
-    expect($validator->fails())->toBeTrue()
-        ->and($validator->errors()->has('type'))->toBeTrue();
-});
-
-test('it validates integer values according to their type', function () {
-    $validator = makeUpdateSettingValidator([
-        'group' => 'general',
-        'key' => 'items_per_page',
         'value' => 20,
         'type' => 'integer',
+        'is_public' => false,
     ]);
 
     expect($validator->passes())->toBeTrue();
 });
 
-test('it rejects invalid integer values according to their type', function () {
+test('it rejects an invalid integer setting value', function () {
     $validator = makeUpdateSettingValidator([
-        'group' => 'general',
-        'key' => 'items_per_page',
         'value' => 'invalid-number',
         'type' => 'integer',
     ]);
@@ -110,10 +85,8 @@ test('it rejects invalid integer values according to their type', function () {
         ->and($validator->errors()->has('value'))->toBeTrue();
 });
 
-test('it validates boolean values according to their type', function () {
+test('it validates a valid boolean setting value', function () {
     $validator = makeUpdateSettingValidator([
-        'group' => 'general',
-        'key' => 'maintenance_mode',
         'value' => true,
         'type' => 'boolean',
         'is_public' => false,
@@ -122,10 +95,8 @@ test('it validates boolean values according to their type', function () {
     expect($validator->passes())->toBeTrue();
 });
 
-test('it rejects invalid boolean values according to their type', function () {
+test('it rejects an invalid boolean setting value', function () {
     $validator = makeUpdateSettingValidator([
-        'group' => 'general',
-        'key' => 'maintenance_mode',
         'value' => 'invalid-boolean',
         'type' => 'boolean',
     ]);
@@ -134,10 +105,8 @@ test('it rejects invalid boolean values according to their type', function () {
         ->and($validator->errors()->has('value'))->toBeTrue();
 });
 
-test('it validates valid json values according to their type', function () {
+test('it validates a valid json setting value', function () {
     $validator = makeUpdateSettingValidator([
-        'group' => 'general',
-        'key' => 'theme_config',
         'value' => '{"theme":"dark"}',
         'type' => 'json',
     ]);
@@ -145,10 +114,8 @@ test('it validates valid json values according to their type', function () {
     expect($validator->passes())->toBeTrue();
 });
 
-test('it rejects invalid json values according to their type', function () {
+test('it rejects an invalid json setting value', function () {
     $validator = makeUpdateSettingValidator([
-        'group' => 'general',
-        'key' => 'theme_config',
         'value' => '{"theme":"dark"',
         'type' => 'json',
     ]);
@@ -157,10 +124,27 @@ test('it rejects invalid json values according to their type', function () {
         ->and($validator->errors()->has('value'))->toBeTrue();
 });
 
+test('it requires a supported setting type when creating a new setting', function () {
+    $validator = makeUpdateSettingValidator([
+        'value' => 'Website Arpus',
+        'type' => 'unsupported',
+    ]);
+
+    expect($validator->fails())->toBeTrue()
+        ->and($validator->errors()->has('type'))->toBeTrue();
+});
+
+test('it requires a setting type when creating a new setting', function () {
+    $validator = makeUpdateSettingValidator([
+        'value' => 'Website Arpus',
+    ]);
+
+    expect($validator->fails())->toBeTrue()
+        ->and($validator->errors()->has('type'))->toBeTrue();
+});
+
 test('it allows a null value when nullable', function () {
     $validator = makeUpdateSettingValidator([
-        'group' => 'general',
-        'key' => 'optional_value',
         'value' => null,
         'type' => 'string',
     ]);
@@ -170,8 +154,6 @@ test('it allows a null value when nullable', function () {
 
 test('it validates is_public as a boolean', function () {
     $validator = makeUpdateSettingValidator([
-        'group' => 'general',
-        'key' => 'site_name',
         'value' => 'Website Arpus',
         'type' => 'string',
         'is_public' => 'invalid',
@@ -182,17 +164,11 @@ test('it validates is_public as a boolean', function () {
 });
 
 test('it can transform validated request data into setting data', function () {
-    $request = new UpdateSettingRequest();
-
-    $request->merge([
-        'group' => 'general',
-        'key' => 'site_name',
+    $request = makeUpdateSettingRequest([
         'value' => 'Website Arpus',
         'type' => 'string',
         'is_public' => true,
     ]);
-
-    $request->setContainer(app());
 
     $validator = Validator::make(
         $request->all(),
@@ -214,17 +190,43 @@ test('it can transform validated request data into setting data', function () {
         ->and($data->isPublic)->toBeTrue();
 });
 
-test('it defaults is_public to false when not provided in setting data', function () {
-    $request = new UpdateSettingRequest();
+test('it uses group and key from trusted route parameters', function () {
+    $request = makeUpdateSettingRequest(
+        [
+            'value' => 'Website Arpus Kota Semarang',
+            'type' => 'string',
+            'is_public' => true,
 
-    $request->merge([
-        'group' => 'general',
-        'key' => 'site_name',
+            /*
+             * These values must not override trusted route parameters.
+             */
+            'group' => 'malicious-group',
+            'key' => 'malicious-key',
+        ],
+        'general',
+        'site_name',
+    );
+
+    $validator = Validator::make(
+        $request->all(),
+        $request->rules(),
+    );
+
+    expect($validator->passes())->toBeTrue();
+
+    $request->setValidator($validator);
+
+    $data = $request->toData();
+
+    expect($data->group)->toBe('general')
+        ->and($data->key)->toBe('site_name');
+});
+
+test('it defaults is_public to false when not provided for a new setting', function () {
+    $request = makeUpdateSettingRequest([
         'value' => 'Website Arpus',
         'type' => 'string',
     ]);
-
-    $request->setContainer(app());
 
     $validator = Validator::make(
         $request->all(),
@@ -241,17 +243,11 @@ test('it defaults is_public to false when not provided in setting data', functio
 });
 
 test('it preserves boolean values when transforming to setting data', function () {
-    $request = new UpdateSettingRequest();
-
-    $request->merge([
-        'group' => 'general',
-        'key' => 'maintenance_mode',
+    $request = makeUpdateSettingRequest([
         'value' => true,
         'type' => 'boolean',
         'is_public' => false,
-    ]);
-
-    $request->setContainer(app());
+    ], 'system', 'maintenance_mode');
 
     $validator = Validator::make(
         $request->all(),
@@ -264,24 +260,21 @@ test('it preserves boolean values when transforming to setting data', function (
 
     $data = $request->toData();
 
-    expect($data->value)->toBeTrue()
-        ->and($data->type)->toBe('boolean');
+    expect($data->group)->toBe('system')
+        ->and($data->key)->toBe('maintenance_mode')
+        ->and($data->value)->toBeTrue()
+        ->and($data->type)->toBe('boolean')
+        ->and($data->isPublic)->toBeFalse();
 });
 
-test('it preserves json values when transforming to setting data', function () {
+test('it transforms valid json strings into arrays in setting data', function () {
     $json = '{"theme":"dark","layout":"modern"}';
 
-    $request = new UpdateSettingRequest();
-
-    $request->merge([
-        'group' => 'general',
-        'key' => 'theme_config',
+    $request = makeUpdateSettingRequest([
         'value' => $json,
         'type' => 'json',
         'is_public' => true,
-    ]);
-
-    $request->setContainer(app());
+    ], 'general', 'theme_config');
 
     $validator = Validator::make(
         $request->all(),
@@ -294,22 +287,21 @@ test('it preserves json values when transforming to setting data', function () {
 
     $data = $request->toData();
 
-    expect($data->value)->toBe($json)
+    expect($data->group)->toBe('general')
+        ->and($data->key)->toBe('theme_config')
+        ->and($data->value)->toBe([
+            'theme' => 'dark',
+            'layout' => 'modern',
+        ])
         ->and($data->type)->toBe('json')
         ->and($data->isPublic)->toBeTrue();
 });
 
 test('it preserves null values when transforming to setting data', function () {
-    $request = new UpdateSettingRequest();
-
-    $request->merge([
-        'group' => 'general',
-        'key' => 'optional_value',
+    $request = makeUpdateSettingRequest([
         'value' => null,
         'type' => 'string',
-    ]);
-
-    $request->setContainer(app());
+    ], 'general', 'optional_value');
 
     $validator = Validator::make(
         $request->all(),
@@ -322,5 +314,9 @@ test('it preserves null values when transforming to setting data', function () {
 
     $data = $request->toData();
 
-    expect($data->value)->toBeNull();
+    expect($data->group)->toBe('general')
+        ->and($data->key)->toBe('optional_value')
+        ->and($data->value)->toBeNull()
+        ->and($data->type)->toBe('string')
+        ->and($data->isPublic)->toBeFalse();
 });
