@@ -181,12 +181,17 @@ test('authorized user can update content', function () {
         'slug' => 'judul-lama',
     ]);
 
+    $body = <<<'HTML'
+<p>Body baru dengan gambar.</p>
+<p><img src="http://localhost:8000/storage/media/2026/09/example.webp" alt="Garuda Pancasila" width="289" height="300"></p>
+HTML;
+
     $payload = [
         'type' => ContentType::NEWS->value,
         'title' => 'Judul Baru',
         'slug' => 'judul-baru',
         'excerpt' => 'Excerpt baru.',
-        'body' => 'Body baru.',
+        'body' => $body,
         'status' => ContentStatus::REVIEW->value,
         'published_at' => null,
         'author_uuid' => $author->uuid,
@@ -200,8 +205,8 @@ test('authorized user can update content', function () {
         ->put(route('admin.contents.update', $content), $payload);
 
     $response
-        ->assertRedirect(route('admin.contents.edit', $content))
-        ->assertSessionHas('success');
+        ->assertRedirect(route('admin.contents.index'))
+        ->assertSessionHas('success', 'Content berhasil diperbarui.');
 
     $content->refresh();
 
@@ -209,7 +214,11 @@ test('authorized user can update content', function () {
         ->and($content->slug)->toBe('judul-baru')
         ->and($content->type)->toBe(ContentType::NEWS)
         ->and($content->status)->toBe(ContentStatus::REVIEW)
-        ->and($content->author_id)->toBe($author->id);
+        ->and($content->author_id)->toBe($author->id)
+        ->and($content->body)->toContain('<img')
+        ->and($content->body)->toContain('alt="Garuda Pancasila"')
+        ->and($content->body)->toContain('width="289"')
+        ->and($content->body)->toContain('height="300"');
 });
 
 test('content internal identifiers cannot be mass assigned through controller', function () {
@@ -247,4 +256,66 @@ test('content internal identifiers cannot be mass assigned through controller', 
         ->and($content->uuid)->not->toBe($payload['uuid'])
         ->and($content->author_id)->toBe($author->id)
         ->and($content->deleted_at)->toBeNull();
+});
+
+test('content creation preserves image html in body', function () {
+    $user = User::factory()->create();
+
+    $user->givePermissionTo('content.create');
+
+    $body = <<<'HTML'
+<p>Konten dengan gambar.</p>
+<p><img src="http://localhost:8000/storage/media/2026/09/example.webp" alt="Garuda Pancasila" width="289" height="300"></p>
+HTML;
+
+    $response = $this
+        ->actingAs($user)
+        ->post(route('admin.contents.store'), [
+            'type' => ContentType::ARTICLE->value,
+            'title' => 'Content With Image',
+            'slug' => 'content-with-image',
+            'body' => $body,
+            'status' => ContentStatus::DRAFT->value,
+            'author_uuid' => null,
+        ]);
+
+    $response->assertSessionDoesntHaveErrors();
+
+    $content = Content::query()
+        ->where('slug', 'content-with-image')
+        ->first();
+
+    expect($content)->not->toBeNull();
+    expect($content->body)->toContain('<img');
+    expect($content->body)->toContain('alt="Garuda Pancasila"');
+    expect($content->body)->toContain('width="289"');
+    expect($content->body)->toContain('height="300"');
+});
+
+test('edit page preserves image html from saved content', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo('content.update');
+
+    $body = <<<'HTML'
+<p>Konten dengan gambar.</p>
+<p><img src="http://localhost:8000/storage/media/2026/09/example.webp" alt="Garuda Pancasila" width="289" height="300"></p>
+HTML;
+
+    $content = Content::factory()->create([
+        'title' => 'Content With Image',
+        'slug' => 'content-with-image',
+        'body' => $body,
+    ]);
+
+    $response = $this
+        ->actingAs($user)
+        ->get(route('admin.contents.edit', $content));
+
+    $response
+        ->assertOk()
+        ->assertViewIs('admin.contents.edit')
+        ->assertSee('Garuda Pancasila', false)
+        ->assertSee('example.webp', false)
+        ->assertSee('width=&quot;289&quot;', false)
+        ->assertSee('height=&quot;300&quot;', false);
 });

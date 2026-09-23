@@ -1,5 +1,5 @@
-@import 'tailwindcss';
-@import '../../vendor/livewire/flux/dist/flux.css';
+@import "tailwindcss";
+@import "../../vendor/livewire/flux/dist/flux.css";
 
 @source '../views';
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
@@ -9,35 +9,172 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+    /*
+    |--------------------------------------------------------------------------
+    | Typography
+    |--------------------------------------------------------------------------
+    */
+
+    --font-sans:
+        "Instrument Sans", ui-sans-serif, system-ui, sans-serif,
+        "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol",
+        "Noto Color Emoji";
+
+    /*
+    |--------------------------------------------------------------------------
+    | Neutral / Foundation Colors
+    |--------------------------------------------------------------------------
+    |
+    | Existing zinc tokens are intentionally preserved because the current
+    | admin pages still use them directly. They can be migrated gradually.
+    |
+    */
 
     --color-zinc-50: #fafafa;
     --color-zinc-100: #f5f5f5;
-    --color-zinc-200: #e5e5e5;
-    --color-zinc-300: #d4d4d4;
-    --color-zinc-400: #a3a3a3;
-    --color-zinc-500: #737373;
-    --color-zinc-600: #525252;
-    --color-zinc-700: #404040;
-    --color-zinc-800: #262626;
-    --color-zinc-900: #171717;
-    --color-zinc-950: #0a0a0a;
+    --color-zinc-200: #e4e4e7;
+    --color-zinc-300: #d4d4d8;
+    --color-zinc-400: #a1a1aa;
+    --color-zinc-500: #71717a;
+    --color-zinc-600: #52525b;
+    --color-zinc-700: #3f3f46;
+    --color-zinc-800: #27272a;
+    --color-zinc-900: #18181b;
+    --color-zinc-950: #09090b;
+
+    /*
+    |--------------------------------------------------------------------------
+    | Brand
+    |--------------------------------------------------------------------------
+    |
+    | Provisional institutional green.
+    |
+    | These tokens establish the architecture first. The final Arpusda
+    | identity color can be adjusted later without changing component code.
+    |
+    */
+
+    --color-brand-50: #f0fdf4;
+    --color-brand-100: #dcfce7;
+    --color-brand-200: #bbf7d0;
+    --color-brand-300: #86efac;
+    --color-brand-400: #4ade80;
+    --color-brand-500: #22c55e;
+    --color-brand-600: #16a34a;
+    --color-brand-700: #15803d;
+    --color-brand-800: #166534;
+    --color-brand-900: #14532d;
+    --color-brand-950: #052e16;
+
+    /*
+    |--------------------------------------------------------------------------
+    | Semantic Colors
+    |--------------------------------------------------------------------------
+    */
+
+    --color-success: #16a34a;
+    --color-warning: #d97706;
+    --color-danger: #dc2626;
+    --color-info: #2563eb;
+
+    /*
+    |--------------------------------------------------------------------------
+    | Application Surfaces
+    |--------------------------------------------------------------------------
+    */
+
+    --color-app-background: #f8fafc;
+    --color-app-surface: #ffffff;
+    --color-app-surface-muted: #f4f4f5;
+    --color-app-surface-elevated: #ffffff;
+
+    /*
+    |--------------------------------------------------------------------------
+    | Application Text
+    |--------------------------------------------------------------------------
+    */
+
+    --color-app-text: #18181b;
+    --color-app-text-secondary: #52525b;
+    --color-app-text-muted: #71717a;
+
+    /*
+    |--------------------------------------------------------------------------
+    | Application Borders
+    |--------------------------------------------------------------------------
+    */
+
+    --color-app-border: #e4e4e7;
+    --color-app-border-subtle: #f4f4f5;
+
+    /*
+    |--------------------------------------------------------------------------
+    | Flux Accent
+    |--------------------------------------------------------------------------
+    */
 
     --color-accent: var(--color-neutral-800);
     --color-accent-content: var(--color-neutral-800);
     --color-accent-foreground: var(--color-white);
 }
 
+/*
+|--------------------------------------------------------------------------
+| Dark Theme
+|--------------------------------------------------------------------------
+*/
+
 @layer theme {
     .dark {
-        --color-accent: var(--color-white);
-        --color-accent-content: var(--color-white);
-        --color-accent-foreground: var(--color-neutral-800);
+        /*
+        |--------------------------------------------------------------------------
+        | Application Surfaces
+        |--------------------------------------------------------------------------
+        */
+
+        --color-app-background: #09090b;
+        --color-app-surface: #18181b;
+        --color-app-surface-muted: #27272a;
+        --color-app-surface-elevated: #27272a;
+
+        /*
+        |--------------------------------------------------------------------------
+        | Application Text
+        |--------------------------------------------------------------------------
+        */
+
+        --color-app-text: #fafafa;
+        --color-app-text-secondary: #d4d4d8;
+        --color-app-text-muted: #a1a1aa;
+
+        /*
+        |--------------------------------------------------------------------------
+        | Application Borders
+        |--------------------------------------------------------------------------
+        */
+
+        --color-app-border: #3f3f46;
+        --color-app-border-subtle: #27272a;
+
+        /*
+        |--------------------------------------------------------------------------
+        | Flux Accent
+        |--------------------------------------------------------------------------
+        */
+
+        --color-accent: var(--color-neutral-100);
+        --color-accent-content: var(--color-neutral-100);
+        --color-accent-foreground: var(--color-neutral-900);
     }
 }
 
-@layer base {
+/*
+|--------------------------------------------------------------------------
+| Base
+|--------------------------------------------------------------------------
+*/
 
+@layer base {
     *,
     ::after,
     ::before,
@@ -45,15 +182,36 @@
     ::file-selector-button {
         border-color: var(--color-gray-200, currentColor);
     }
+
+    html {
+        font-family: var(--font-sans);
+    }
+
+    body {
+        background-color: var(--color-app-background);
+        color: var(--color-app-text);
+    }
 }
+
+/*
+|--------------------------------------------------------------------------
+| Flux Fields
+|--------------------------------------------------------------------------
+*/
 
 [data-flux-field]:not(ui-radio, ui-checkbox) {
     @apply grid gap-2;
 }
 
 [data-flux-label] {
-    @apply  !mb-0 !leading-tight;
+    @apply !mb-0 !leading-tight;
 }
+
+/*
+|--------------------------------------------------------------------------
+| Form Focus
+|--------------------------------------------------------------------------
+*/
 
 input:focus[data-flux-control],
 textarea:focus[data-flux-control],
@@ -61,6 +219,344 @@ select:focus[data-flux-control] {
     @apply outline-hidden ring-2 ring-accent ring-offset-2 ring-offset-accent-foreground;
 }
 
-/* \[:where(&)\]:size-4 {
-    @apply size-4;
-} */
+/*
+|--------------------------------------------------------------------------
+| RTE Formatting
+|--------------------------------------------------------------------------
+*/
+[data-tiptap-editor] .ProseMirror {
+    min-height: 16rem;
+    line-height: 1.7;
+}
+
+[data-tiptap-editor] .ProseMirror p {
+    margin-block: 0.5rem;
+}
+
+[data-tiptap-editor] .ProseMirror h2 {
+    margin-top: 1.5rem;
+    margin-bottom: 0.75rem;
+    font-size: 1.25rem;
+    line-height: 1.4;
+    font-weight: 600;
+}
+
+[data-tiptap-editor] .ProseMirror h3 {
+    margin-top: 1.25rem;
+    margin-bottom: 0.5rem;
+    font-size: 1.125rem;
+    line-height: 1.5;
+    font-weight: 600;
+}
+
+[data-tiptap-editor] .ProseMirror blockquote {
+    margin-block: 1rem;
+    padding-left: 1rem;
+    border-left: 3px solid var(--color-app-border);
+    color: var(--color-app-text-secondary);
+    font-style: italic;
+}
+
+[data-tiptap-editor] .ProseMirror ul {
+    list-style-type: disc;
+    padding-left: 1.5rem;
+}
+
+[data-tiptap-editor] .ProseMirror ol {
+    list-style-type: decimal;
+    padding-left: 1.5rem;
+}
+
+[data-tiptap-editor] .ProseMirror li {
+    margin-block: 0.25rem;
+}
+
+[data-tiptap-editor] .ProseMirror a {
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    cursor: pointer;
+}
+
+[data-tiptap-editor] .ProseMirror img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+}
+
+/*
+|--------------------------------------------------------------------------
+| RTE Toolbar
+|--------------------------------------------------------------------------
+*/
+
+[data-content-editor] [data-editor-command] {
+    border-radius: 0.375rem;
+    transition:
+        background-color 150ms ease,
+        color 150ms ease,
+        border-color 150ms ease;
+}
+
+[data-content-editor] [data-editor-command]:hover {
+    background-color: var(--color-app-surface-muted);
+}
+
+[data-content-editor] [data-editor-command].is-active {
+    background-color: var(--color-brand-100);
+    color: var(--color-brand-800);
+}
+
+.dark [data-content-editor] [data-editor-command].is-active {
+    background-color: var(--color-brand-900);
+    color: var(--color-brand-100);
+}
+
+[data-content-editor] [data-editor-command]:focus-visible {
+    outline: 2px solid var(--color-brand-500);
+    outline-offset: 2px;
+}
+
+/* =========================================================
+   Media Library
+   ========================================================= */
+
+.media-upload-panel {
+    overflow: hidden;
+    border: 1px solid var(--color-app-border);
+    border-radius: 0.875rem;
+    background: var(--color-app-surface);
+    box-shadow:
+        0 1px 2px rgb(0 0 0 / 0.04),
+        0 4px 12px rgb(0 0 0 / 0.03);
+}
+
+.media-upload-header {
+    padding: 1.25rem 1.25rem 0;
+}
+
+.media-upload-dropzone {
+    position: relative;
+    display: flex;
+    min-height: 300px;
+    cursor: pointer;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin: 1.25rem;
+    overflow: hidden;
+    border: 1.5px dashed var(--color-app-border);
+    border-radius: 0.875rem;
+    background: var(--color-app-surface-muted);
+    padding: 2rem;
+    text-align: center;
+    transition:
+        border-color 150ms ease,
+        background-color 150ms ease,
+        box-shadow 150ms ease;
+}
+
+.media-upload-dropzone:hover {
+    border-color: var(--color-brand-400);
+    background: color-mix(
+        in srgb,
+        var(--color-brand-50) 55%,
+        var(--color-app-surface-muted)
+    );
+}
+
+.media-upload-dropzone:focus-within {
+    border-color: var(--color-brand-500);
+    box-shadow: 0 0 0 3px
+        color-mix(in srgb, var(--color-brand-500) 15%, transparent);
+}
+
+.dark .media-upload-dropzone:hover {
+    background: color-mix(
+        in srgb,
+        var(--color-brand-950) 35%,
+        var(--color-app-surface-muted)
+    );
+}
+
+/*
+|--------------------------------------------------------------------------
+| Empty Upload State
+|--------------------------------------------------------------------------
+*/
+
+.media-upload-empty {
+    display: flex;
+    width: 100%;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.media-upload-empty-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-brand-600);
+}
+
+.dark .media-upload-empty-icon {
+    color: var(--color-brand-300);
+}
+
+.media-upload-select-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    border: 1px solid var(--color-app-border);
+    border-radius: 0.75rem;
+    background: var(--color-app-surface);
+    padding: 0.625rem 1rem;
+    color: var(--color-app-text);
+    font-size: 0.75rem;
+    font-weight: 600;
+    box-shadow: 0 1px 2px rgb(0 0 0 / 0.04);
+    transition:
+        background-color 150ms ease,
+        border-color 150ms ease,
+        transform 150ms ease;
+}
+
+.media-upload-select-button:hover {
+    border-color: var(--color-brand-300);
+    background: var(--color-brand-50);
+}
+
+.dark .media-upload-select-button:hover {
+    border-color: var(--color-brand-700);
+    background: var(--color-brand-950);
+}
+
+/*
+|--------------------------------------------------------------------------
+| File Input
+|--------------------------------------------------------------------------
+*/
+
+.media-upload-input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+    opacity: 0;
+}
+
+/*
+|--------------------------------------------------------------------------
+| Selected File Preview
+|--------------------------------------------------------------------------
+|
+| Important:
+| We intentionally use :not(.hidden) here.
+| This prevents these rules from overriding Tailwind's .hidden class.
+|
+*/
+
+.media-upload-preview {
+    width: 100%;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+}
+
+.media-upload-preview:not(.hidden) {
+    display: flex;
+}
+
+.media-upload-preview-frame {
+    display: flex;
+    width: min(100%, 520px);
+    height: 210px;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border: 1px solid var(--color-app-border);
+    border-radius: 0.875rem;
+    background: var(--color-app-surface);
+}
+
+.media-upload-preview-image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    padding: 0.5rem;
+}
+
+.media-upload-preview-image:not(.hidden) {
+    display: block;
+}
+
+.media-upload-preview-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-app-text-muted);
+}
+
+.media-upload-preview-icon.hidden {
+    display: none;
+}
+
+.media-upload-preview-info {
+    display: flex;
+    max-width: 100%;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.media-upload-preview-name {
+    max-width: min(100%, 520px);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--color-app-text);
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.media-upload-preview-meta {
+    color: var(--color-app-text-muted);
+    font-size: 0.75rem;
+}
+
+.media-upload-preview-hint {
+    color: var(--color-app-text-muted);
+    font-size: 0.75rem;
+}
+
+.media-upload-panel > form > .grid,
+.media-upload-panel > form > .flex {
+    margin-right: 1.25rem;
+    margin-left: 1.25rem;
+}
+
+@media (max-width: 640px) {
+    .media-upload-dropzone {
+        min-height: 260px;
+        margin: 1rem;
+        padding: 1.5rem;
+    }
+
+    .media-upload-preview-frame {
+        height: 170px;
+    }
+
+    .media-upload-panel > form > .grid {
+        margin-right: 1rem;
+        margin-left: 1rem;
+    }
+}
+
+[data-tiptap-editor] .ProseMirror img.ProseMirror-selectednode {
+    outline: 2px solid var(--color-app-accent);
+    outline-offset: 2px;
+}

@@ -37,9 +37,7 @@ final class MediaStorageService
             $file->extension(),
         );
 
-        $fileName = (string) Str::uuid()
-            . '.'
-            . $extension;
+        $fileName = $this->generateFileName($extension);
 
         $directory = 'media/'
             . now()->format('Y/m');
@@ -59,6 +57,11 @@ final class MediaStorageService
             'extension' => $extension,
             'size' => $file->getSize(),
         ];
+    }
+
+    private function generateFileName(string $extension): string
+    {
+        return Str::uuid() . '.' . $extension;
     }
 
     /**

@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Admin\Menu;
 
-use App\Models\Menu;
 use App\Data\Menu\MenuData;
+use App\Models\Menu;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Validation\Rule;
 
 final class UpdateMenuRequest extends FormRequest
@@ -26,8 +27,8 @@ final class UpdateMenuRequest extends FormRequest
                 'required',
                 'string',
                 'max:255',
-                Rule::unique('menus', 'name')
-                    ->ignore($menu?->id),
+                'regex:/^[a-z0-9_-]+$/',
+                Rule::unique('menus', 'name')->ignore($this->route('menu')),
             ],
 
             'label' => [
@@ -48,6 +49,7 @@ final class UpdateMenuRequest extends FormRequest
                 'nullable',
                 'string',
                 'max:2048',
+                'url:http,https',
                 'required_if:type,url',
                 'prohibited_if:type,route',
             ],
@@ -58,6 +60,11 @@ final class UpdateMenuRequest extends FormRequest
                 'max:255',
                 'required_if:type,route',
                 'prohibited_if:type,url',
+                function (string $attribute, mixed $value, \Closure $fail): void {
+                    if ($value !== null && ! Route::has($value)) {
+                        $fail('The selected route name does not exist.');
+                    }
+                },
             ],
 
             'target' => [
@@ -108,8 +115,8 @@ final class UpdateMenuRequest extends FormRequest
             routeName: $validated['route_name'] ?? null,
             target: $validated['target'] ?? '_self',
             icon: $validated['icon'] ?? null,
-            sortOrder: $validated['sort_order'] ?? 0,
-            isActive: $validated['is_active'] ?? true,
+            sortOrder: (int) ($validated['sort_order'] ?? 0),
+            isActive: (bool) ($validated['is_active'] ?? true),
             parentId: $validated['parent_id'] ?? null,
         );
     }

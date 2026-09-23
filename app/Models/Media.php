@@ -90,4 +90,19 @@ final class Media extends Model
             '/',
         ) . '/' . $this->file_name;
     }
+
+    /**
+     * Get the thumbnail variant storage path.
+     */
+    public function getThumbnailPathAttribute(): ?string
+    {
+        $path = data_get(
+            $this->metadata,
+            'variants.thumbnail',
+        );
+
+        return is_string($path) && $path !== ''
+            ? $path
+            : null;
+    }
 }

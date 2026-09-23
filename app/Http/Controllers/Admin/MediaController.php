@@ -10,8 +10,9 @@ use App\Http\Requests\Admin\Media\UploadMediaRequest;
 use App\Models\Media;
 use App\Services\Media\MediaService;
 use Illuminate\Http\RedirectResponse;
-// use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 final class MediaController extends Controller
 {
@@ -30,6 +31,19 @@ final class MediaController extends Controller
             ->paginate(24);
 
         return view('admin.media.index', [
+            'media' => $media,
+        ]);
+    }
+
+
+    public function trash(): View
+    {
+        $media = Media::onlyTrashed()
+            ->with('uploader')
+            ->latest('deleted_at')
+            ->paginate(24);
+
+        return view('admin.media.trash', [
             'media' => $media,
         ]);
     }
@@ -54,11 +68,18 @@ final class MediaController extends Controller
      */
     public function show(Media $media): View
     {
+        $media->load('uploader');
+
         return view('admin.media.show', [
             'media' => $media,
         ]);
     }
-
+    public function edit(Media $media): View
+    {
+        return view('admin.media.edit', [
+            'media' => $media,
+        ]);
+    }
     /**
      * Update media metadata.
      */
@@ -110,5 +131,29 @@ final class MediaController extends Controller
         return redirect()
             ->route('admin.media.index')
             ->with('success', 'Media berhasil dihapus permanen.');
+    }
+
+    public function preview(Media $media): StreamedResponse
+    {
+        abort_unless(
+            $media->mime_type === 'application/pdf',
+            404,
+        );
+
+        abort_unless(
+            Storage::disk($media->disk)->exists(
+                $media->path . '/' . $media->file_name,
+            ),
+            404,
+        );
+
+        return Storage::disk($media->disk)->response(
+            $media->path . '/' . $media->file_name,
+            $media->original_name,
+            [
+                'Content-Type' => 'application/pdf',
+                'Content-Disposition' => 'inline',
+            ],
+        );
     }
 }

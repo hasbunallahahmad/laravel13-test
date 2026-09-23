@@ -4,16 +4,17 @@ declare(strict_types=1);
 
 namespace App\Models;
 
-use App\Enums\ContentStatus;
-use App\Enums\ContentType;
-use App\Models\User;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Str;
 use LogicException;
+use App\Models\User;
+use App\Enums\ContentType;
+use App\Enums\ContentStatus;
+use Illuminate\Support\Str;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Content extends Model
 {
@@ -73,6 +74,17 @@ class Content extends Model
     public function author(): BelongsTo
     {
         return $this->belongsTo(User::class, 'author_id');
+    }
+
+    public function blocks(): HasMany
+    {
+        return $this->hasMany(ContentBlock::class)
+            ->orderBy('sort_order');
+    }
+
+    public function isPage(): bool
+    {
+        return $this->type === ContentType::PAGE;
     }
 
     // public function resolveSoftDeletableRouteBinding(

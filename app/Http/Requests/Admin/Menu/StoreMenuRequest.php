@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Admin\Menu;
 
+use App\Data\Menu\MenuData;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Validation\Rule;
 
 final class StoreMenuRequest extends FormRequest
@@ -21,6 +23,8 @@ final class StoreMenuRequest extends FormRequest
                 'required',
                 'string',
                 'max:255',
+                'regex:/^[a-z0-9_-]+$/',
+                Rule::unique('menus', 'name'),
             ],
 
             'label' => [
@@ -41,6 +45,7 @@ final class StoreMenuRequest extends FormRequest
                 'nullable',
                 'string',
                 'max:2048',
+                'url:http,https',
                 'required_if:type,url',
                 'prohibited_if:type,route',
             ],
@@ -51,6 +56,11 @@ final class StoreMenuRequest extends FormRequest
                 'max:255',
                 'required_if:type,route',
                 'prohibited_if:type,url',
+                function (string $attribute, mixed $value, \Closure $fail): void {
+                    if ($value !== null && ! Route::has($value)) {
+                        $fail('The selected route name does not exist.');
+                    }
+                },
             ],
 
             'target' => [
@@ -81,8 +91,29 @@ final class StoreMenuRequest extends FormRequest
             'parent_id' => [
                 'nullable',
                 'integer',
-                'exists:menus,id',
+                Rule::exists('menus', 'id')
+                    ->whereNull('deleted_at'),
             ],
         ];
+    }
+
+    public function toData(): MenuData
+    {
+        $validated = $this->validated();
+
+        return new MenuData(
+            name: $validated['name'],
+            label: $validated['label'],
+            type: $validated['type'],
+            url: $validated['url'] ?? null,
+            routeName: $validated['route_name'] ?? null,
+            target: $validated['target'] ?? '_self',
+            icon: $validated['icon'] ?? null,
+            sortOrder: (int) ($validated['sort_order'] ?? 0),
+            isActive: (bool) ($validated['is_active'] ?? true),
+            parentId: isset($validated['parent_id'])
+                ? (int) $validated['parent_id']
+                : null,
+        );
     }
 }

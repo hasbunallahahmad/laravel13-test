@@ -15,18 +15,7 @@ final class MenuService
         $this->validateParentId($data->parentId);
         $this->validateParentRelationship($menu, $data->parentId);
 
-        $menu->update([
-            'parent_id' => $data->parentId,
-            'name' => $data->name,
-            'label' => $data->label,
-            'type' => $data->type,
-            'url' => $data->url,
-            'route_name' => $data->routeName,
-            'target' => $data->target,
-            'icon' => $data->icon,
-            'sort_order' => $data->sortOrder,
-            'is_active' => $data->isActive,
-        ]);
+        $menu->update($this->toAttributes($data));
 
         return $menu->refresh();
     }
@@ -83,7 +72,26 @@ final class MenuService
     {
         $this->validateParentId($data->parentId);
 
-        return Menu::query()->create([
+        return Menu::query()->create(
+            $this->toAttributes($data)
+        );
+    }
+
+    public function delete(Menu $menu): void
+    {
+        $menu->children()->update([
+            'parent_id' => null,
+        ]);
+
+        $menu->delete();
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function toAttributes(MenuData $data): array
+    {
+        return [
             'parent_id' => $data->parentId,
             'name' => $data->name,
             'label' => $data->label,
@@ -94,15 +102,6 @@ final class MenuService
             'icon' => $data->icon,
             'sort_order' => $data->sortOrder,
             'is_active' => $data->isActive,
-        ]);
-    }
-
-    public function delete(Menu $menu): void
-    {
-        $menu->children()->update([
-            'parent_id' => null,
-        ]);
-
-        $menu->delete();
+        ];
     }
 }

@@ -65,9 +65,35 @@ test('authorized user can create content', function () {
     expect($content)->not->toBeNull();
     expect($content->author_id)->toBe($author->id);
 
-    $response
-        ->assertRedirect(route('admin.contents.edit', $content))
-        ->assertSessionHas('success', 'Content berhasil dibuat.');
+$response
+    ->assertRedirect(route('admin.contents.index'))
+    ->assertSessionHas('success', 'Content berhasil dibuat.');
+});
+
+test('authorized user can create content with slug generated from title', function () {
+    $user = User::factory()->create();
+
+    $user->givePermissionTo('content.create');
+
+    $response = $this
+        ->actingAs($user)
+        ->post(route('admin.contents.store'), [
+            'type' => ContentType::ARTICLE->value,
+            'title' => 'Berita Kegiatan Jalan Sehat HUT RI ke-81',
+            'excerpt' => 'Ringkasan berita.',
+            'body' => '<p>Isi berita.</p>',
+            'status' => ContentStatus::DRAFT->value,
+            'published_at' => null,
+            'author_uuid' => $user->uuid,
+            'metadata' => null,
+        ]);
+
+    $response->assertRedirect();
+
+    $this->assertDatabaseHas('contents', [
+        'title' => 'Berita Kegiatan Jalan Sehat HUT RI ke-81',
+        'slug' => 'berita-kegiatan-jalan-sehat-hut-ri-ke-81',
+    ]);
 });
 
 test('content creation rejects duplicate slug', function () {
@@ -125,9 +151,9 @@ test('authorized user can update content', function () {
     expect($content->status)->toBe(ContentStatus::PUBLISHED);
     expect($content->author_id)->toBe($author->id);
 
-    $response
-        ->assertRedirect(route('admin.contents.edit', $content))
-        ->assertSessionHas('success', 'Content berhasil diperbarui.');
+$response
+    ->assertRedirect(route('admin.contents.index'))
+    ->assertSessionHas('success', 'Content berhasil diperbarui.');
 });
 
 test('content update allows its existing slug', function () {
@@ -701,3 +727,290 @@ test('content trash shows permanent delete action with force delete permission',
         false,
     );
 });
+
+test('content create page displays content form fields', function () {
+    $user = User::factory()->create();
+
+    $user->givePermissionTo('content.create');
+
+    $response = $this
+        ->actingAs($user)
+        ->get(route('admin.contents.create'));
+
+    $response->assertOk();
+
+    $response->assertSee('name="type"', false);
+    $response->assertSee('name="title"', false);
+    $response->assertSee('name="slug"', false);
+    $response->assertSee('name="excerpt"', false);
+    $response->assertSee('name="body"', false);
+    $response->assertSee('name="status"', false);
+    $response->assertSee('name="published_at"', false);
+    $response->assertSee('name="author_uuid"', false);
+});
+
+test('content edit page displays content form fields', function () {
+    $user = User::factory()->create();
+
+    $user->givePermissionTo('content.update');
+
+    $content = Content::factory()->create([
+        'title' => 'Test Content',
+    ]);
+
+    $response = $this
+        ->actingAs($user)
+        ->get(route('admin.contents.edit', $content));
+
+    $response->assertOk();
+
+    $response->assertSee('name="type"', false);
+    $response->assertSee('name="title"', false);
+    $response->assertSee('name="slug"', false);
+    $response->assertSee('name="excerpt"', false);
+    $response->assertSee('name="body"', false);
+    $response->assertSee('name="status"', false);
+    $response->assertSee('name="published_at"', false);
+    $response->assertSee('name="author_uuid"', false);
+});
+
+test('content create page exposes title and slug fields for automatic slug generation', function () {
+    $user = User::factory()->create();
+
+    $user->givePermissionTo('content.create');
+
+    $response = $this
+        ->actingAs($user)
+        ->get(route('admin.contents.create'));
+
+    $response->assertOk();
+
+    $response->assertSee('data-slug-source', false);
+    $response->assertSee('data-slug-target', false);
+});
+
+test('authorized user can create content with a manually provided slug', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo('content.create');
+
+    $response = $this->actingAs($user)->post(route('admin.contents.store'), [
+        'type' => ContentType::ARTICLE->value,
+        'title' => 'Berita Kegiatan Jalan Sehat',
+        'slug' => 'berita-khusus-jalan-sehat',
+        'excerpt' => 'Ringkasan berita.',
+        'body' => '<p>Isi berita.</p>',
+        'status' => ContentStatus::DRAFT->value,
+        'published_at' => null,
+        'author_uuid' => $user->uuid,
+        'metadata' => null,
+    ]);
+
+    $response->assertRedirect();
+
+    $this->assertDatabaseHas('contents', [
+        'title' => 'Berita Kegiatan Jalan Sehat',
+        'slug' => 'berita-khusus-jalan-sehat',
+    ]);
+});
+
+test('authorized user can create content with slug generated from a non-ascii title', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo('content.create');
+
+    $response = $this->actingAs($user)->post(route('admin.contents.store'), [
+        'type' => ContentType::ARTICLE->value,
+        'title' => 'Berita Kegiatan di Kota Semarang',
+        'excerpt' => 'Ringkasan berita.',
+        'body' => '<p>Isi berita.</p>',
+        'status' => ContentStatus::DRAFT->value,
+        'published_at' => null,
+        'author_uuid' => $user->uuid,
+        'metadata' => null,
+    ]);
+
+    $response->assertRedirect();
+
+    $this->assertDatabaseHas('contents', [
+        'title' => 'Berita Kegiatan di Kota Semarang',
+        'slug' => 'berita-kegiatan-di-kota-semarang',
+    ]);
+});
+
+test('authorized user can create content with rich text body', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo('content.create');
+
+    $richBody = '<p>Berita <strong>penting</strong> untuk masyarakat.</p>
+        <ul>
+            <li>Informasi pertama</li>
+            <li>Informasi kedua</li>
+        </ul>';
+
+    $response = $this->actingAs($user)->post(route('admin.contents.store'), [
+        'type' => ContentType::ARTICLE->value,
+        'title' => 'Berita dengan Rich Text',
+        'slug' => 'berita-dengan-rich-text',
+        'excerpt' => 'Ringkasan berita.',
+        'body' => $richBody,
+        'status' => ContentStatus::DRAFT->value,
+        'published_at' => null,
+        'author_uuid' => $user->uuid,
+        'metadata' => null,
+    ]);
+
+    $response->assertRedirect();
+
+    // $this->assertDatabaseHas('contents', [
+    //     'slug' => 'berita-dengan-rich-text',
+    //     'body' => $richBody,
+    // ]);
+    $content = Content::query()
+        ->where('slug', 'berita-dengan-rich-text')
+        ->firstOrFail();
+
+    expect($content->body)
+        ->toContain('<p>Berita <strong>penting</strong> untuk masyarakat.</p>')
+        ->toContain('<ul>')
+        ->toContain('<li>Informasi pertama</li>')
+        ->toContain('<li>Informasi kedua</li>');
+});
+
+test('content creation rejects dangerous rich text html', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo('content.create');
+
+    $dangerousBody = '<p>Konten aman</p>
+        <script>alert("XSS")</script>
+        <img src="x" onerror="alert(\'XSS\')">
+        <a href="javascript:alert(\'XSS\')">Link berbahaya</a>';
+
+    $response = $this->actingAs($user)->post(route('admin.contents.store'), [
+        'type' => ContentType::ARTICLE->value,
+        'title' => 'Berita Keamanan HTML',
+        'slug' => 'berita-keamanan-html',
+        'excerpt' => 'Ringkasan berita.',
+        'body' => $dangerousBody,
+        'status' => ContentStatus::DRAFT->value,
+        'published_at' => null,
+        'author_uuid' => $user->uuid,
+        'metadata' => null,
+    ]);
+
+    $response->assertRedirect();
+
+    $content = Content::query()
+        ->where('slug', 'berita-keamanan-html')
+        ->firstOrFail();
+
+    expect($content->body)
+        ->not->toContain('<script')
+        ->not->toContain('onerror=')
+        ->not->toContain('javascript:');
+});
+
+test('authorized user can create content with safe rich text html', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo('content.create');
+
+    $richBody = <<<'HTML'
+<p>Berita <strong>penting</strong> untuk masyarakat.</p>
+<ul>
+    <li>Informasi pertama</li>
+    <li>Informasi kedua</li>
+</ul>
+<p><a href="https://example.com">Baca selengkapnya</a></p>
+HTML;
+
+    $response = $this->actingAs($user)->post(route('admin.contents.store'), [
+        'type' => ContentType::ARTICLE->value,
+        'title' => 'Berita Rich Text Aman',
+        'slug' => 'berita-rich-text-aman',
+        'excerpt' => 'Ringkasan berita.',
+        'body' => $richBody,
+        'status' => ContentStatus::DRAFT->value,
+        'published_at' => null,
+        'author_uuid' => $user->uuid,
+        'metadata' => null,
+    ]);
+
+    $response->assertRedirect();
+
+    $content = Content::query()
+        ->where('slug', 'berita-rich-text-aman')
+        ->firstOrFail();
+
+    expect($content->body)
+        ->toContain('<p>Berita <strong>penting</strong> untuk masyarakat.</p>')
+        ->toContain('<ul>')
+        ->toContain('<li>Informasi pertama</li>')
+        ->toContain('<li>Informasi kedua</li>')
+        ->toContain('<a href="https://example.com">Baca selengkapnya</a>');
+});
+
+test('content create page exposes rich text editor for body field', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo('content.create');
+
+    $response = $this->actingAs($user)
+        ->get(route('admin.contents.create'));
+
+    $response->assertOk();
+    $response->assertSee('data-content-editor', false);
+
+});
+
+test('content edit page exposes rich text editor for body field', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo('content.update');
+
+    $content = Content::factory()->create([
+        'body' => '<p>Isi artikel <strong>lama</strong>.</p>',
+    ]);
+
+    $response = $this->actingAs($user)
+        ->get(route('admin.contents.edit', $content));
+
+    $response->assertOk();
+    $response->assertSee('data-content-editor', false);
+
+});
+
+test('content edit page exposes rich text editor behavior for body field', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo('content.update');
+
+    $content = Content::factory()->create([
+        'body' => '<p>Isi artikel <strong>lama</strong>.</p>',
+    ]);
+
+    $response = $this->actingAs($user)
+        ->get(route('admin.contents.edit', $content));
+
+    $response->assertOk();
+
+    $response->assertSee('data-content-editor', false);
+
+    $response->assertSee('data-editor-command="bold"', false);
+    $response->assertSee('data-editor-command="italic"', false);
+    $response->assertSee('data-editor-command="bullet-list"', false);
+    $response->assertSee('data-editor-command="ordered-list"', false);
+    $response->assertSee('data-editor-command="paragraph"', false);
+    $response->assertSee('data-editor-command="heading-2"', false);
+    $response->assertSee('data-editor-command="heading-3"', false);
+    $response->assertSee('data-editor-command="underline"', false);
+    $response->assertSee('data-editor-command="strike"', false);
+    $response->assertSee('data-editor-command="clear"', false);
+    $response->assertSee('data-editor-command="blockquote"', false);
+    $response->assertSee('data-editor-command="link"', false);
+    $response->assertSee('data-editor-command="unlink"', false);
+    $response->assertSee('data-editor-command="undo"', false);
+    $response->assertSee('data-editor-command="redo"', false);
+
+    $response->assertDontSee(
+        'document.execCommand(command, false)',
+        false,
+    );
+
+});
+
+

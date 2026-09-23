@@ -1,19 +1,29 @@
 <x-layouts::admin :title="__('Content')">
     <div class="space-y-6">
 
-        {{-- Header --}}
-        <div class="flex flex-wrap gap-2">
+        {{-- Page Header --}}
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+                <flux:heading size="xl">
+                    {{ __('Content') }}
+                </flux:heading>
 
-            <flux:button :href="route('admin.contents.trash')" variant="ghost" icon="trash">
-                {{ __('Trash') }}
-            </flux:button>
+                <flux:text class="mt-2">
+                    {{ __('Manage website content and publications.') }}
+                </flux:text>
+            </div>
 
-            @can('create', \App\Models\Content::class)
-                <flux:button :href="route('admin.contents.create')" variant="primary" icon="plus">
-                    {{ __('Create Content') }}
+            <div class="flex flex-wrap gap-2">
+                <flux:button :href="route('admin.contents.trash')" variant="ghost" icon="trash">
+                    {{ __('Trash') }}
                 </flux:button>
-            @endcan
 
+                @can('create', \App\Models\Content::class)
+                    <flux:button :href="route('admin.contents.create')" variant="primary" icon="plus">
+                        {{ __('Create Content') }}
+                    </flux:button>
+                @endcan
+            </div>
         </div>
 
         {{-- Success Message --}}
@@ -23,14 +33,14 @@
             </flux:callout>
         @endif
 
-        {{-- Content Table --}}
-        <div class="overflow-hidden rounded-xl border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900">
+        {{-- Content Table / Empty State --}}
+        <div class="overflow-hidden rounded-xl border border-app-border bg-app-surface">
 
             @if ($contents->isEmpty())
 
                 {{-- Empty State --}}
                 <div class="flex flex-col items-center justify-center px-6 py-16 text-center">
-                    <flux:icon.document-text class="mb-4 size-12 text-zinc-400" />
+                    <flux:icon.document-text class="mb-4 size-12 text-app-text-muted" />
 
                     <flux:heading size="lg">
                         {{ __('No content found') }}
@@ -47,34 +57,34 @@
                     @endcan
                 </div>
             @else
-                {{-- Desktop Table --}}
+                {{-- Content Table --}}
                 <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-zinc-200 dark:divide-zinc-700">
+                    <table class="min-w-full divide-y divide-app-border">
 
-                        <thead class="bg-zinc-50 dark:bg-zinc-800/50">
+                        <thead class="bg-app-surface-muted">
                             <tr>
                                 <th scope="col"
-                                    class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">
+                                    class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-app-text-muted">
                                     {{ __('Content') }}
                                 </th>
 
                                 <th scope="col"
-                                    class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">
+                                    class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-app-text-muted">
                                     {{ __('Type') }}
                                 </th>
 
                                 <th scope="col"
-                                    class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">
+                                    class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-app-text-muted">
                                     {{ __('Status') }}
                                 </th>
 
                                 <th scope="col"
-                                    class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">
+                                    class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-app-text-muted">
                                     {{ __('Author') }}
                                 </th>
 
                                 <th scope="col"
-                                    class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">
+                                    class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-app-text-muted">
                                     {{ __('Published') }}
                                 </th>
 
@@ -86,19 +96,19 @@
                             </tr>
                         </thead>
 
-                        <tbody class="divide-y divide-zinc-200 dark:divide-zinc-700">
+                        <tbody class="divide-y divide-app-border">
 
                             @foreach ($contents as $content)
-                                <tr class="hover:bg-zinc-50 dark:hover:bg-zinc-800/50">
+                                <tr class="hover:bg-app-surface-muted">
 
                                     {{-- Content --}}
                                     <td class="whitespace-nowrap px-6 py-4">
                                         <div class="max-w-sm">
-                                            <div class="truncate font-medium text-zinc-900 dark:text-white">
+                                            <div class="truncate font-medium text-app">
                                                 {{ $content->title }}
                                             </div>
 
-                                            <div class="mt-1 truncate text-sm text-zinc-500">
+                                            <div class="mt-1 truncate text-sm text-app-text-muted">
                                                 /{{ $content->slug }}
                                             </div>
                                         </div>
@@ -129,13 +139,13 @@
 
                                     {{-- Author --}}
                                     <td class="whitespace-nowrap px-6 py-4">
-                                        <div class="text-sm text-zinc-900 dark:text-white">
+                                        <div class="text-sm text-app">
                                             {{ $content->author?->name ?? __('Unknown') }}
                                         </div>
                                     </td>
 
                                     {{-- Published --}}
-                                    <td class="whitespace-nowrap px-6 py-4 text-sm text-zinc-500">
+                                    <td class="whitespace-nowrap px-6 py-4 text-sm text-app-text-muted">
                                         {{ $content->published_at?->format('d M Y H:i') ?? '—' }}
                                     </td>
 
@@ -176,7 +186,7 @@
 
                 {{-- Pagination --}}
                 @if ($contents->hasPages())
-                    <div class="border-t border-zinc-200 px-6 py-4 dark:border-zinc-700">
+                    <div class="border-t border-app-border px-6 py-4">
                         {{ $contents->links() }}
                     </div>
                 @endif

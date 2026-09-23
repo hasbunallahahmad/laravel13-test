@@ -10,14 +10,14 @@ use App\Services\Menu\MenuService;
 use DomainException;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 
 class MenuController extends Controller
 {
     public function index(): View
     {
         $menus = Menu::query()
-            ->with('parent')
+            ->whereNull('parent_id')
+            ->with('parent', 'children')
             ->orderBy('sort_order')
             ->get();
 
@@ -36,24 +36,26 @@ class MenuController extends Controller
             'parentMenus' => $parentMenus,
         ]);
     }
+    public function edit(Menu $menu): View
+    {
+        $parentMenus = Menu::query()
+            ->whereNull('deleted_at')
+            ->whereKeyNot($menu->id)
+            ->orderBy('sort_order')
+            ->get();
+
+        return view('admin.menus.edit', [
+            'menu' => $menu,
+            'parentMenus' => $parentMenus,
+        ]);
+    }
 
     public function store(
         StoreMenuRequest $request,
         MenuService $menuService,
     ): RedirectResponse {
         $menuService->create(
-            new \App\Data\Menu\MenuData(
-                name: $request->validated('name'),
-                label: $request->validated('label'),
-                type: $request->validated('type'),
-                url: $request->validated('url'),
-                routeName: $request->validated('route_name'),
-                target: $request->validated('target') ?? '_self',
-                icon: $request->validated('icon'),
-                sortOrder: $request->validated('sort_order') ?? 0,
-                isActive: $request->validated('is_active') ?? true,
-                parentId: $request->validated('parent_id'),
-            ),
+            $request->toData(),
         );
 
         return redirect()
@@ -102,5 +104,16 @@ class MenuController extends Controller
 
         return redirect()
             ->route('admin.menus.index');
+    }
+
+    public function trash(): View
+    {
+        $menus = Menu::onlyTrashed()
+            ->orderBy('deleted_at', 'desc')
+            ->get();
+
+        return view('admin.menus.trash', [
+            'menus' => $menus,
+        ]);
     }
 }

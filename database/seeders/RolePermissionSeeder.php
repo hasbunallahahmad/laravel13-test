@@ -33,6 +33,7 @@ class RolePermissionSeeder extends Seeder
             'users.create',
             'users.update',
             'users.delete',
+            'users.force-delete',
 
             // Roles
             'roles.view',
@@ -69,6 +70,11 @@ class RolePermissionSeeder extends Seeder
 
             // Menus
             'menus.view',
+            'menus.create',
+            'menus.update',
+            'menus.delete',
+            'menus.restore',
+            'menus.force-delete',
         ];
 
         foreach ($permissions as $permission) {
@@ -152,6 +158,12 @@ class RolePermissionSeeder extends Seeder
             'media.delete',
 
             'settings.view',
+
+            'menus.view',
+            'menus.create',
+            'menus.update',
+            'menus.delete',
+            'menus.restore',
         ]);
 
         /*

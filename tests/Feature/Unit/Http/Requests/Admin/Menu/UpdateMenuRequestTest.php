@@ -81,7 +81,7 @@ test('menu can keep its own name when updated', function () {
         'name' => 'main-menu',
         'label' => 'Menu Utama Updated',
         'type' => 'url',
-        'url' => '/updated',
+        'url' => 'https://example.com/updated',
         'route_name' => null,
         'target' => '_self',
         'sort_order' => 0,
@@ -153,7 +153,7 @@ test('menu can use another existing menu as parent when updated', function () {
         'name' => 'main-menu',
         'label' => 'Menu Utama Updated',
         'type' => 'url',
-        'url' => '/',
+        'url' => 'https://example.com/',
         'route_name' => null,
         'target' => '_self',
         'sort_order' => 0,
@@ -257,7 +257,7 @@ test('valid url menu can be updated', function () {
         'name' => 'main-menu',
         'label' => 'Menu Utama Updated',
         'type' => 'url',
-        'url' => '/updated',
+        'url' => 'https://example.com/updated',
         'route_name' => null,
         'target' => '_blank',
         'sort_order' => 1,
@@ -309,7 +309,7 @@ test('url menu cannot contain route name when updated', function () {
         'name' => 'main-menu',
         'label' => 'Menu Utama',
         'type' => 'url',
-        'url' => '/updated',
+        'url' => 'https://example.com/updated',
         'route_name' => 'home',
         'target' => '_self',
         'sort_order' => 0,
@@ -335,7 +335,7 @@ test('route menu cannot contain url when updated', function () {
         'name' => 'main-menu',
         'label' => 'Menu Utama',
         'type' => 'route',
-        'url' => '/invalid',
+        'url' => 'https://example.com/invalid',
         'route_name' => 'admin.dashboard',
         'target' => '_self',
         'sort_order' => 0,
@@ -361,7 +361,7 @@ test('update menu request converts validated data to menu data', function () {
         'name' => 'main-menu-updated',
         'label' => 'Menu Utama Updated',
         'type' => 'url',
-        'url' => '/updated',
+        'url' => 'https://example.com/updated',
         'route_name' => null,
         'target' => '_blank',
         'icon' => 'home',
@@ -411,7 +411,7 @@ test('update menu request converts validated data to menu data', function () {
         ->and($menuData->name)->toBe('main-menu-updated')
         ->and($menuData->label)->toBe('Menu Utama Updated')
         ->and($menuData->type)->toBe('url')
-        ->and($menuData->url)->toBe('/updated')
+        ->and($menuData->url)->toBe('https://example.com/updated')
         ->and($menuData->routeName)->toBeNull()
         ->and($menuData->target)->toBe('_blank')
         ->and($menuData->icon)->toBe('home')

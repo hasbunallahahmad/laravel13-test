@@ -10,6 +10,8 @@ use App\Models\Content;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Str;
+use App\Services\Content\ContentHtmlSanitizer;
 
 class StoreContentRequest extends FormRequest
 {
@@ -77,5 +79,21 @@ class StoreContentRequest extends FormRequest
                 'array',
             ],
         ];
+    }
+
+    protected function prepareForValidation(): void
+    {
+        $slug = trim((string) $this->input('slug', ''));
+
+        $body = (string) $this->input('body', '');
+
+        $sanitizer = app(ContentHtmlSanitizer::class);
+
+        $this->merge([
+            'slug' => $slug === ''
+                ? Str::slug((string) $this->input('title', ''))
+                : $slug,
+            'body' => $sanitizer->sanitize($body),
+        ]);
     }
 }

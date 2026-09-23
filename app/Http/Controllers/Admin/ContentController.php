@@ -60,7 +60,7 @@ class ContentController extends Controller
         $content->save();
 
         return redirect()
-            ->route('admin.contents.edit', $content)
+            ->route('admin.contents.index')
             ->with('success', 'Content berhasil dibuat.');
     }
 
@@ -98,7 +98,7 @@ class ContentController extends Controller
         $content->save();
 
         return redirect()
-            ->route('admin.contents.edit', $content)
+            ->route('admin.contents.index')
             ->with('success', 'Content berhasil diperbarui.');
     }
 

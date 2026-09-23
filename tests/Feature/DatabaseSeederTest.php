@@ -50,4 +50,67 @@ class DatabaseSeederTest extends TestCase
             $user->hasRole('super-admin')
         );
     }
+
+    public function test_role_permission_seeder_creates_required_menu_permissions(): void
+    {
+        $this->seed(\Database\Seeders\RolePermissionSeeder::class);
+
+        $permissions = [
+            'menus.view',
+            'menus.create',
+            'menus.update',
+            'menus.delete',
+            'menus.restore',
+            'menus.force-delete',
+        ];
+
+        foreach ($permissions as $permission) {
+            $this->assertDatabaseHas('permissions', [
+                'name' => $permission,
+                'guard_name' => 'web',
+            ]);
+        }
+    }
+
+    public function test_admin_role_has_required_menu_permissions(): void
+    {
+        $this->seed(\Database\Seeders\RolePermissionSeeder::class);
+
+        $admin = Role::query()
+            ->where('name', 'admin')
+            ->firstOrFail();
+
+        $this->assertTrue($admin->hasPermissionTo('menus.view'));
+        $this->assertTrue($admin->hasPermissionTo('menus.create'));
+        $this->assertTrue($admin->hasPermissionTo('menus.update'));
+        $this->assertTrue($admin->hasPermissionTo('menus.delete'));
+        $this->assertTrue($admin->hasPermissionTo('menus.restore'));
+
+        $this->assertFalse($admin->hasPermissionTo('menus.force-delete'));
+    }
+
+    public function test_super_admin_role_has_all_menu_permissions(): void
+    {
+        $this->seed(\Database\Seeders\RolePermissionSeeder::class);
+
+        $superAdmin = Role::query()
+            ->where('name', 'super-admin')
+            ->firstOrFail();
+
+        $permissions = [
+            'menus.view',
+            'menus.create',
+            'menus.update',
+            'menus.delete',
+            'menus.restore',
+            'menus.force-delete',
+        ];
+
+        foreach ($permissions as $permission) {
+            $this->assertTrue(
+                $superAdmin->hasPermissionTo($permission),
+                "Super admin does not have permission [{$permission}]."
+            );
+        }
+    }
 }

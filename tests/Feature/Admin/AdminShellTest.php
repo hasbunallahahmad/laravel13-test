@@ -9,6 +9,8 @@ beforeEach(function () {
     Permission::findOrCreate('dashboard.view');
     Permission::findOrCreate('settings.view');
     Permission::findOrCreate('content.view');
+    Permission::findOrCreate('media.view');
+    Permission::findOrCreate('menus.view');
 });
 
 test('guest cannot access admin dashboard', function () {
@@ -140,4 +142,134 @@ test('content navigation is visible with content permission', function () {
         'href="' . route('admin.contents.index') . '"',
         false,
     );
+});
+
+test('user menu displays account settings link', function () {
+    $user = User::factory()->create();
+
+    $user->givePermissionTo('dashboard.view');
+
+    $response = $this
+        ->actingAs($user)
+        ->get(route('admin.dashboard'));
+
+    $response->assertOk();
+
+    $response->assertSee('Account Settings');
+    $response->assertSee(
+        'href="' . route('profile.edit') . '"',
+        false,
+    );
+});
+
+test('media navigation is hidden without media permission', function () {
+    $user = User::factory()->create();
+
+    $user->givePermissionTo('dashboard.view');
+
+    $response = $this
+        ->actingAs($user)
+        ->get(route('admin.dashboard'));
+
+    $response->assertOk();
+
+    $response->assertDontSee(
+        'href="' . route('admin.media.index') . '"',
+        false,
+    );
+});
+
+test('media navigation is visible with media permission', function () {
+    $user = User::factory()->create();
+
+    $user->givePermissionTo([
+        'dashboard.view',
+        'media.view',
+    ]);
+
+    $response = $this
+        ->actingAs($user)
+        ->get(route('admin.dashboard'));
+
+    $response->assertOk();
+
+    $response->assertSee(
+        'href="' . route('admin.media.index') . '"',
+        false,
+    );
+});
+
+test('menu navigation is hidden without menus permission', function () {
+    $user = User::factory()->create();
+
+    $user->givePermissionTo('dashboard.view');
+
+    $response = $this
+        ->actingAs($user)
+        ->get(route('admin.dashboard'));
+
+    $response->assertOk();
+
+    $response->assertDontSee(
+        'href="' . route('admin.menus.index') . '"',
+        false,
+    );
+});
+
+test('menu navigation is visible with menus permission', function () {
+    $user = User::factory()->create();
+
+    $user->givePermissionTo([
+        'dashboard.view',
+        'menus.view',
+    ]);
+
+    $response = $this
+        ->actingAs($user)
+        ->get(route('admin.dashboard'));
+
+    $response->assertOk();
+
+    $response->assertSee(
+        'href="' . route('admin.menus.index') . '"',
+        false,
+    );
+});
+
+test('media index renders admin shell', function () {
+    $user = User::factory()->create();
+
+    $user->givePermissionTo([
+        'dashboard.view',
+        'media.view',
+    ]);
+
+    $response = $this
+        ->actingAs($user)
+        ->get(route('admin.media.index'));
+
+    $response->assertOk();
+
+    $response->assertSee('Media Library');
+    $response->assertSee('Dashboard');
+    $response->assertSee('Settings');
+});
+
+test('menu index renders admin shell', function () {
+    $user = User::factory()->create();
+
+    $user->givePermissionTo([
+        'dashboard.view',
+        'menus.view',
+    ]);
+
+    $response = $this
+        ->actingAs($user)
+        ->get(route('admin.menus.index'));
+
+    $response->assertOk();
+
+    $response->assertSee('Menu Management');
+    $response->assertSee('Dashboard');
+    $response->assertSee('Settings');
 });

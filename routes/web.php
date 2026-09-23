@@ -3,8 +3,11 @@
 use App\Http\Controllers\Admin\ContentController;
 use App\Http\Controllers\Admin\MediaController;
 use App\Http\Controllers\Admin\MenuController;
+use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\Settings\SettingController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Admin\MediaPickerController;
 
 /*
 |--------------------------------------------------------------------------
@@ -54,9 +57,7 @@ Route::middleware(['auth'])
         |--------------------------------------------------------------------------
         */
 
-        Route::get('/dashboard', function () {
-            return view('admin.dashboard.index');
-        })
+        Route::get('/dashboard', [DashboardController::class, 'index'])
             ->middleware('permission:dashboard.view')
             ->name('dashboard');
 
@@ -73,6 +74,10 @@ Route::middleware(['auth'])
             ->middleware('permission:menus.view')
             ->name('menus.create');
 
+        Route::get('/menus/{menu}/edit', [MenuController::class, 'edit'])
+            ->middleware('permission:menus.view')
+            ->name('menus.edit');
+
         Route::post('/menus', [MenuController::class, 'store'])
             ->middleware('permission:menus.view')
             ->name('menus.store');
@@ -84,6 +89,10 @@ Route::middleware(['auth'])
         Route::delete('/menus/{menu}', [MenuController::class, 'destroy'])
             ->middleware('permission:menus.view')
             ->name('menus.destroy');
+
+        Route::get('/menus/trash', [MenuController::class, 'trash'])
+            ->middleware('permission:menus.view')
+            ->name('menus.trash');
 
         /*
         |--------------------------------------------------------------------------
@@ -104,10 +113,10 @@ Route::middleware(['auth'])
             ->name('settings.update');
 
         /*
-|--------------------------------------------------------------------------
-| Media
-|--------------------------------------------------------------------------
-*/
+        |--------------------------------------------------------------------------
+        | Media
+        |--------------------------------------------------------------------------
+        */
 
         Route::get('/media', [MediaController::class, 'index'])
             ->middleware('permission:media.view')
@@ -117,9 +126,21 @@ Route::middleware(['auth'])
             ->middleware('permission:media.create')
             ->name('media.store');
 
+        Route::get('/media/picker', [MediaPickerController::class, 'index'])
+            ->middleware('permission:media.view')
+            ->name('media.picker');
+
+        Route::get('/media/trash', [MediaController::class, 'trash'])
+            ->middleware('permission:media.view')
+            ->name('media.trash');
+
         Route::get('/media/{media}', [MediaController::class, 'show'])
             ->middleware('permission:media.view')
             ->name('media.show');
+
+        Route::get('/media/{media}/edit', [MediaController::class, 'edit'])
+            ->middleware('permission:media.view|media.update')
+            ->name('media.edit');
 
         Route::patch('/media/{media}', [MediaController::class, 'update'])
             ->middleware('permission:media.update')
@@ -138,6 +159,10 @@ Route::middleware(['auth'])
             ->middleware('permission:media.force-delete')
             ->withTrashed()
             ->name('media.force-delete');
+
+        Route::get('/media/{media}/preview', [MediaController::class, 'preview'])
+            ->middleware('permission:media.view')
+            ->name('media.preview');
 
         /*
         |--------------------------------------------------------------------------
@@ -187,6 +212,48 @@ Route::middleware(['auth'])
             ->middleware('permission:menus.view')
             ->withTrashed()
             ->name('menus.restore');
+
+        /*
+        |--------------------------------------------------------------------------
+        | Users
+        |--------------------------------------------------------------------------
+        */
+
+        Route::get('/users', [UserController::class, 'index'])
+            ->middleware('permission:users.view')
+            ->name('users.index');
+
+        Route::get('/users/create', [UserController::class, 'create'])
+            ->middleware('permission:users.create')
+            ->name('users.create');
+
+        Route::post('/users', [UserController::class, 'store'])
+            ->middleware('permission:users.create')
+            ->name('users.store');
+
+        Route::get('/users/{user}/edit', [UserController::class, 'edit'])
+            ->middleware('permission:users.update')
+            ->name('users.edit');
+
+        Route::patch('/users/{user}', [UserController::class, 'update'])
+            ->middleware('permission:users.update')
+            ->name('users.update');
+
+        Route::delete('/users/{user}', [UserController::class, 'destroy'])
+            ->middleware('permission:users.delete')
+            ->name('users.destroy');
+
+        Route::get('/users/trash', [UserController::class, 'trash'])
+            ->middleware('permission:users.view')
+            ->name('users.trash');
+
+        Route::patch('/users/{user}/restore', [UserController::class, 'restore'])
+            ->middleware('permission:users.update')
+            ->name('users.restore');
+
+        Route::delete('/users/{user}/force-destroy', [UserController::class, 'forceDestroy'])
+            ->middleware('permission:users.force-delete')
+            ->name('users.force-destroy');
     });
 
 

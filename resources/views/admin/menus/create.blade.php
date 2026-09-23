@@ -1,76 +1,317 @@
-<x-layouts::app>
-    <div>
-        <h1>Create Menu</h1>
+<x-layouts::admin :title="__('Create Menu')">
+    <div class="space-y-6">
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+                <div class="flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400">
+                    <a href="{{ route('admin.menus.index') }}"
+                        class="transition hover:text-zinc-900 dark:hover:text-white">
+                        Menu Management
+                    </a>
 
-        <div>
-            <label for="name">Name</label>
-            <input id="name" type="text" name="name">
+                    <span>/</span>
+
+                    <span class="text-zinc-700 dark:text-zinc-300">
+                        Create
+                    </span>
+                </div>
+
+                <h1 class="mt-2 text-2xl font-semibold tracking-tight text-zinc-900 dark:text-white">
+                    Create Menu
+                </h1>
+
+                <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+                    Tambahkan menu baru ke dalam navigasi website.
+                </p>
+            </div>
+
+            <a href="{{ route('admin.menus.index') }}"
+                class="inline-flex items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-white px-4 py-2 text-sm font-medium text-zinc-700 shadow-sm transition hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700">
+                Kembali
+            </a>
         </div>
 
-        <div>
-            <label for="label">Label</label>
-            <input id="label" type="text" name="label">
-        </div>
+        @if ($errors->any())
+            <div class="rounded-xl border border-red-200 bg-red-50 p-4 dark:border-red-500/30 dark:bg-red-500/10">
+                <div class="flex gap-3">
+                    <div class="mt-0.5 shrink-0 text-red-600 dark:text-red-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="size-5" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor" stroke-width="1.8">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M12 9v3.75m0 3.75h.008M10.29 3.86l-7.1 12.28A2 2 0 004.92 19h14.16a2 2 0 001.73-2.86L13.71 3.86a2 2 0 00-3.42 0z" />
+                        </svg>
+                    </div>
 
-        <div>
-            <label for="type">Type</label>
+                    <div>
+                        <h2 class="text-sm font-semibold text-red-800 dark:text-red-300">
+                            Terdapat kesalahan
+                        </h2>
 
-            <select id="type" name="type">
-                <option value="route">Route</option>
-                <option value="url">URL</option>
-            </select>
-        </div>
+                        <ul class="mt-2 list-disc space-y-1 pl-5 text-sm text-red-700 dark:text-red-400">
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        @endif
 
-        <div>
-            <label for="route_name">Route Name</label>
-            <input id="route_name" type="text" name="route_name">
-        </div>
+        <form action="{{ route('admin.menus.store') }}" method="POST">
+            @csrf
 
-        <div>
-            <label for="url">URL</label>
-            <input id="url" type="url" name="url">
-        </div>
+            <div
+                class="overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
 
-        <div>
-            <label for="target">Target</label>
+                <div class="border-b border-zinc-200 px-6 py-5 dark:border-zinc-700">
+                    <h2 class="text-base font-semibold text-zinc-900 dark:text-white">
+                        Informasi Menu
+                    </h2>
 
-            <select id="target" name="target">
-                <option value="_self">Same Window</option>
-                <option value="_blank">New Window</option>
-            </select>
-        </div>
+                    <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+                        Informasi dasar yang digunakan untuk mengidentifikasi menu.
+                    </p>
+                </div>
 
-        <div>
-            <label for="icon">Icon</label>
-            <input id="icon" type="text" name="icon">
-        </div>
+                <div class="grid gap-6 p-6 md:grid-cols-2">
 
-        <div>
-            <label for="sort_order">Sort Order</label>
-            <input id="sort_order" type="number" name="sort_order" min="0">
-        </div>
+                    <div>
+                        <label for="name" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                            Name
+                        </label>
 
-        <div>
-            <label for="is_active">Status</label>
+                        <input id="name" type="text" name="name" value="{{ old('name') }}"
+                            class="mt-2 block w-full rounded-lg border-zinc-300 bg-white px-3 py-2.5 text-sm text-zinc-900 shadow-sm outline-none transition placeholder:text-zinc-400 focus:border-zinc-500 focus:ring-2 focus:ring-zinc-500/20 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white dark:placeholder:text-zinc-500"
+                            placeholder="contoh: profil-dinas">
 
-            <select id="is_active" name="is_active">
-                <option value="1">Aktif</option>
-                <option value="0">Nonaktif</option>
-            </select>
-        </div>
+                        <p class="mt-1.5 text-xs text-zinc-500 dark:text-zinc-400">
+                            Identifier internal menu.
+                        </p>
 
-        <div>
-            <label for="parent_id">Parent Menu</label>
+                        @error('name')
+                            <p class="mt-1.5 text-xs text-red-600 dark:text-red-400">
+                                {{ $message }}
+                            </p>
+                        @enderror
+                    </div>
 
-            <select id="parent_id" name="parent_id">
-                <option value="">-- Root Menu --</option>
+                    <div>
+                        <label for="label" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                            Label
+                        </label>
 
-                @foreach ($parentMenus as $parentMenu)
-                    <option value="{{ $parentMenu->id }}">
-                        {{ $parentMenu->label }}
-                    </option>
-                @endforeach
-            </select>
-        </div>
+                        <input id="label" type="text" name="label" value="{{ old('label') }}"
+                            class="mt-2 block w-full rounded-lg border-zinc-300 bg-white px-3 py-2.5 text-sm text-zinc-900 shadow-sm outline-none transition placeholder:text-zinc-400 focus:border-zinc-500 focus:ring-2 focus:ring-zinc-500/20 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white dark:placeholder:text-zinc-500"
+                            placeholder="contoh: Profil Dinas">
+
+                        <p class="mt-1.5 text-xs text-zinc-500 dark:text-zinc-400">
+                            Nama yang akan ditampilkan pada navigasi website.
+                        </p>
+
+                        @error('label')
+                            <p class="mt-1.5 text-xs text-red-600 dark:text-red-400">
+                                {{ $message }}
+                            </p>
+                        @enderror
+                    </div>
+
+                    <div>
+                        <label for="type" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                            Type
+                        </label>
+
+                        <select id="type" name="type"
+                            class="mt-2 block w-full rounded-lg border-zinc-300 bg-white px-3 py-2.5 text-sm text-zinc-900 shadow-sm outline-none transition focus:border-zinc-500 focus:ring-2 focus:ring-zinc-500/20 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white">
+                            <option value="route" @selected(old('type', 'route') === 'route')>
+                                Route
+                            </option>
+
+                            <option value="url" @selected(old('type') === 'url')>
+                                URL
+                            </option>
+                        </select>
+
+                        @error('type')
+                            <p class="mt-1.5 text-xs text-red-600 dark:text-red-400">
+                                {{ $message }}
+                            </p>
+                        @enderror
+                    </div>
+
+                    <div>
+                        <label for="icon" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                            Icon
+                        </label>
+
+                        <input id="icon" type="text" name="icon" value="{{ old('icon') }}"
+                            class="mt-2 block w-full rounded-lg border-zinc-300 bg-white px-3 py-2.5 text-sm text-zinc-900 shadow-sm outline-none transition placeholder:text-zinc-400 focus:border-zinc-500 focus:ring-2 focus:ring-zinc-500/20 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white dark:placeholder:text-zinc-500"
+                            placeholder="contoh: home">
+
+                        @error('icon')
+                            <p class="mt-1.5 text-xs text-red-600 dark:text-red-400">
+                                {{ $message }}
+                            </p>
+                        @enderror
+                    </div>
+                </div>
+
+                <div class="border-t border-zinc-200 px-6 py-5 dark:border-zinc-700">
+                    <h2 class="text-base font-semibold text-zinc-900 dark:text-white">
+                        Destination
+                    </h2>
+
+                    <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+                        Tentukan tujuan yang akan dibuka ketika menu dipilih.
+                    </p>
+                </div>
+
+                <div class="grid gap-6 p-6 md:grid-cols-2">
+
+                    <div>
+                        <label for="route_name" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                            Route Name
+                        </label>
+
+                        <input id="route_name" type="text" name="route_name" value="{{ old('route_name') }}"
+                            class="mt-2 block w-full rounded-lg border-zinc-300 bg-white px-3 py-2.5 text-sm text-zinc-900 shadow-sm outline-none transition placeholder:text-zinc-400 focus:border-zinc-500 focus:ring-2 focus:ring-zinc-500/20 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white dark:placeholder:text-zinc-500"
+                            placeholder="admin.dashboard">
+
+                        @error('route_name')
+                            <p class="mt-1.5 text-xs text-red-600 dark:text-red-400">
+                                {{ $message }}
+                            </p>
+                        @enderror
+                    </div>
+
+                    <div>
+                        <label for="url" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                            URL
+                        </label>
+
+                        <input id="url" type="url" name="url" value="{{ old('url') }}"
+                            class="mt-2 block w-full rounded-lg border-zinc-300 bg-white px-3 py-2.5 text-sm text-zinc-900 shadow-sm outline-none transition placeholder:text-zinc-400 focus:border-zinc-500 focus:ring-2 focus:ring-zinc-500/20 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white dark:placeholder:text-zinc-500"
+                            placeholder="https://example.com">
+
+                        @error('url')
+                            <p class="mt-1.5 text-xs text-red-600 dark:text-red-400">
+                                {{ $message }}
+                            </p>
+                        @enderror
+                    </div>
+
+                    <div>
+                        <label for="target" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                            Target
+                        </label>
+
+                        <select id="target" name="target"
+                            class="mt-2 block w-full rounded-lg border-zinc-300 bg-white px-3 py-2.5 text-sm text-zinc-900 shadow-sm outline-none transition focus:border-zinc-500 focus:ring-2 focus:ring-zinc-500/20 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white">
+                            <option value="_self" @selected(old('target', '_self') === '_self')>
+                                Same Window
+                            </option>
+
+                            <option value="_blank" @selected(old('target') === '_blank')>
+                                New Window
+                            </option>
+                        </select>
+
+                        @error('target')
+                            <p class="mt-1.5 text-xs text-red-600 dark:text-red-400">
+                                {{ $message }}
+                            </p>
+                        @enderror
+                    </div>
+                </div>
+
+                <div class="border-t border-zinc-200 px-6 py-5 dark:border-zinc-700">
+                    <h2 class="text-base font-semibold text-zinc-900 dark:text-white">
+                        Struktur Menu
+                    </h2>
+
+                    <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+                        Atur posisi menu dalam struktur navigasi.
+                    </p>
+                </div>
+
+                <div class="grid gap-6 p-6 md:grid-cols-2">
+
+                    <div>
+                        <label for="parent_id" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                            Parent Menu
+                        </label>
+
+                        <select id="parent_id" name="parent_id"
+                            class="mt-2 block w-full rounded-lg border-zinc-300 bg-white px-3 py-2.5 text-sm text-zinc-900 shadow-sm outline-none transition focus:border-zinc-500 focus:ring-2 focus:ring-zinc-500/20 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white">
+                            <option value="">-- Root Menu --</option>
+
+                            @foreach ($parentMenus as $parentMenu)
+                                <option value="{{ $parentMenu->id }}" @selected(old('parent_id') == $parentMenu->id)>
+                                    {{ $parentMenu->label }}
+                                </option>
+                            @endforeach
+                        </select>
+
+                        @error('parent_id')
+                            <p class="mt-1.5 text-xs text-red-600 dark:text-red-400">
+                                {{ $message }}
+                            </p>
+                        @enderror
+                    </div>
+
+                    <div>
+                        <label for="sort_order" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                            Sort Order
+                        </label>
+
+                        <input id="sort_order" type="number" name="sort_order" min="0"
+                            value="{{ old('sort_order') }}"
+                            class="mt-2 block w-full rounded-lg border-zinc-300 bg-white px-3 py-2.5 text-sm text-zinc-900 shadow-sm outline-none transition placeholder:text-zinc-400 focus:border-zinc-500 focus:ring-2 focus:ring-zinc-500/20 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white">
+
+                        @error('sort_order')
+                            <p class="mt-1.5 text-xs text-red-600 dark:text-red-400">
+                                {{ $message }}
+                            </p>
+                        @enderror
+                    </div>
+
+                    <div>
+                        <label for="is_active" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                            Status
+                        </label>
+
+                        <select id="is_active" name="is_active"
+                            class="mt-2 block w-full rounded-lg border-zinc-300 bg-white px-3 py-2.5 text-sm text-zinc-900 shadow-sm outline-none transition focus:border-zinc-500 focus:ring-2 focus:ring-zinc-500/20 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white">
+                            <option value="1" @selected(old('is_active', '1') === '1')>
+                                Aktif
+                            </option>
+
+                            <option value="0" @selected(old('is_active') === '0')>
+                                Nonaktif
+                            </option>
+                        </select>
+
+                        @error('is_active')
+                            <p class="mt-1.5 text-xs text-red-600 dark:text-red-400">
+                                {{ $message }}
+                            </p>
+                        @enderror
+                    </div>
+                </div>
+
+                <div
+                    class="flex flex-col-reverse gap-3 border-t border-zinc-200 bg-zinc-50 px-6 py-4 dark:border-zinc-700 dark:bg-zinc-800/40 sm:flex-row sm:justify-end">
+                    <a href="{{ route('admin.menus.index') }}"
+                        class="inline-flex items-center justify-center rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700">
+                        Batal
+                    </a>
+
+                    {{-- <button type="submit"
+                        class="inline-flex items-center justify-center gap-2 rounded-lg bg-zinc-900 px-5 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-zinc-500/30 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200">
+                        Simpan
+                    </button> --}}
+
+                    <button type="submit">Simpan</button>
+                </div>
+            </div>
+        </form>
     </div>
-</x-layouts::app>
+</x-layouts::admin>

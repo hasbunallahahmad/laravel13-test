@@ -171,37 +171,56 @@ test('it deletes stored file when media database creation fails', function () {
         uploadedBy: $user->id,
     );
 
-    $storage = app(\App\Services\Media\MediaStorageService::class);
+    Media::creating(function (): void {
+        throw new RuntimeException(
+            'Simulated media persistence failure.',
+        );
+    });
 
-    $service = new MediaService($storage);
+    $service = app(MediaService::class);
 
-    /*
- * First upload the file through the storage service so we know
- * exactly which file should be removed when persistence fails.
- */
-    $stored = $storage->store($file);
+    expect(fn() => $service->upload($data))
+        ->toThrow(
+            RuntimeException::class,
+            'Simulated media persistence failure.',
+        );
 
-    /*
- * Verify that the file exists before simulating the database failure.
- */
-    Storage::disk('public')->assertExists(
-        $stored['path'] . '/' . $stored['file_name'],
+    expect(
+        Media::query()->count(),
+    )->toBe(0);
+
+    expect(
+        Storage::disk('public')->allFiles('media'),
+    )->toBe([]);
+});
+
+test('it rethrows the original exception after cleaning up stored file', function () {
+    $user = User::factory()->create();
+
+    $file = UploadedFile::fake()->image(
+        'photo.jpg',
     );
 
-    /*
- * Simulate the persistence failure directly by passing invalid
- * data to the database layer.
- *
- * The service must remove the already-stored file and rethrow
- * the exception.
- */
-    $invalidData = new MediaUploadData(
-        file: UploadedFile::fake()->image('photo.jpg'),
+    $data = new MediaUploadData(
+        file: $file,
         uploadedBy: $user->id,
     );
 
-    expect(fn() => $service->upload($invalidData))
-        ->not->toThrow(\Throwable::class);
+    Media::creating(function (): void {
+        throw new RuntimeException(
+            'Original persistence error.',
+        );
+    });
+
+    expect(fn() => app(MediaService::class)->upload($data))
+        ->toThrow(
+            RuntimeException::class,
+            'Original persistence error.',
+        );
+
+    expect(
+        Storage::disk('public')->allFiles('media'),
+    )->toBe([]);
 });
 
 test('it permanently deletes media and its stored file', function () {
@@ -367,4 +386,61 @@ test('it updates only media metadata without changing file information', functio
         ->toBe('Alt text baru')
         ->and($updated->caption)
         ->toBe('Caption baru');
+});
+
+test('it deletes all processed image files when media database creation fails', function () {
+    $file = UploadedFile::fake()->image(
+        'gedung-dinas.jpg',
+        1200,
+        800,
+    );
+
+    Media::creating(function (): void {
+        throw new RuntimeException(
+            'Simulated media persistence failure.',
+        );
+    });
+
+    $service = app(MediaService::class);
+
+    expect(fn () => $service->upload(
+        new MediaUploadData(
+            file: $file,
+        ),
+    ))->toThrow(
+        RuntimeException::class,
+        'Simulated media persistence failure.',
+    );
+
+    expect(Media::query()->count())
+        ->toBe(0);
+
+    expect(Storage::disk('public')->allFiles('media'))
+        ->toBe([]);
+});
+
+test('it rethrows the original exception after cleaning up processed image files', function () {
+    $file = UploadedFile::fake()->image(
+        'gedung-dinas.jpg',
+        1200,
+        800,
+    );
+
+    Media::creating(function (): void {
+        throw new RuntimeException(
+            'Original image persistence error.',
+        );
+    });
+
+    expect(fn () => app(MediaService::class)->upload(
+        new MediaUploadData(
+            file: $file,
+        ),
+    ))->toThrow(
+        RuntimeException::class,
+        'Original image persistence error.',
+    );
+
+    expect(Storage::disk('public')->allFiles('media'))
+        ->toBe([]);
 });

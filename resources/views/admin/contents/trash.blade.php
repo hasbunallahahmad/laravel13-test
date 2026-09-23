@@ -33,7 +33,7 @@
         @endif
 
         {{-- Trash Table --}}
-        <div class="overflow-hidden rounded-xl border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900">
+        <div class="overflow-hidden rounded-xl border border-app-border bg-app-surface">
 
             @if ($contents->isEmpty())
 
@@ -57,9 +57,9 @@
             @else
                 {{-- Desktop Table --}}
                 <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-zinc-200 dark:divide-zinc-700">
+                    <table class="min-w-full divide-y divide-app-border">
 
-                        <thead class="bg-zinc-50 dark:bg-zinc-800/50">
+                        <thead class="bg-app-surface-muted">
                             <tr>
                                 <th scope="col"
                                     class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">
@@ -87,16 +87,16 @@
                         <tbody class="divide-y divide-zinc-200 dark:divide-zinc-700">
 
                             @foreach ($contents as $content)
-                                <tr class="hover:bg-zinc-50 dark:hover:bg-zinc-800/50">
+                                <tr class="hover:bg-app-surface-muted">
 
                                     {{-- Content --}}
                                     <td class="px-6 py-4">
                                         <div class="max-w-sm">
-                                            <div class="truncate font-medium text-zinc-900 dark:text-white">
+                                            <div class="truncate font-medium text-app-text">
                                                 {{ $content->title }}
                                             </div>
 
-                                            <div class="mt-1 truncate text-sm text-zinc-500">
+                                            <div class="mt-1 truncate text-sm text-app-text-muted">
                                                 /{{ $content->slug }}
                                             </div>
                                         </div>
@@ -159,7 +159,7 @@
 
                 {{-- Pagination --}}
                 @if ($contents->hasPages())
-                    <div class="border-t border-zinc-200 px-6 py-4 dark:border-zinc-700">
+                    <div class="border-t px-6 py-4" border-app-border>
                         {{ $contents->links() }}
                     </div>
                 @endif

@@ -145,6 +145,34 @@ test('rejects files larger than 10 mb', function () {
         ->and($validator->errors()->has('file'))->toBeTrue();
 });
 
+// test('rejects jpg file with invalid content', function () {
+//     $file = UploadedFile::fake()->createWithContent(
+//         'fake-image.jpg',
+//         'this is not a real jpeg image',
+//     );
+
+//     $validator = validateUploadMediaRequest([
+//         'file' => $file,
+//     ]);
+
+//     expect($validator->fails())->toBeTrue()
+//         ->and($validator->errors()->has('file'))->toBeTrue();
+// });
+
+// test('rejects pdf file with invalid content', function () {
+//     $file = UploadedFile::fake()->createWithContent(
+//         'fake-document.pdf',
+//         'this is not a real pdf document',
+//     );
+
+//     $validator = validateUploadMediaRequest([
+//         'file' => $file,
+//     ]);
+
+//     expect($validator->fails())->toBeTrue()
+//         ->and($validator->errors()->has('file'))->toBeTrue();
+// });
+
 /*
 |--------------------------------------------------------------------------
 | alt_text Validation

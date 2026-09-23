@@ -89,3 +89,16 @@ test('media generates the correct storage path', function () {
     expect($media->storage_path)
         ->toBe('media/2026/09/example.jpg');
 });
+
+test('media exposes thumbnail path from metadata variants', function () {
+    $media = Media::factory()->create([
+        'metadata' => [
+            'variants' => [
+                'thumbnail' => 'media/2026/09/example-thumb.webp',
+            ],
+        ],
+    ]);
+
+    expect($media->thumbnail_path)
+        ->toBe('media/2026/09/example-thumb.webp');
+});

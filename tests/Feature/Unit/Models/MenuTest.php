@@ -131,3 +131,27 @@ test('menu children are ordered by sort order', function () {
             $second->id,
         ]);
 });
+
+test('menu protects sensitive attributes from mass assignment', function () {
+    $menu = Menu::query()->create([
+        'name' => 'main-menu',
+        'label' => 'Menu Utama',
+        'type' => 'url',
+        'url' => '/utama',
+    ]);
+
+    $originalUuid = $menu->uuid;
+
+    $menu->update([
+        'name' => 'updated-menu',
+        'uuid' => '00000000-0000-0000-0000-000000000000',
+        'id' => 999999,
+        'deleted_at' => now(),
+    ]);
+
+    $menu->refresh();
+
+    expect($menu->uuid)->toBe($originalUuid);
+    expect($menu->id)->not->toBe(999999);
+    expect($menu->deleted_at)->toBeNull();
+});

@@ -258,3 +258,192 @@ test('menu service rejects soft deleted parent when creating menu', function () 
     expect(fn() => $service->create($menuData))
         ->toThrow(DomainException::class);
 });
+
+test('menu service deletes menu and detaches its children', function () {
+    $service = app(MenuService::class);
+
+    $parent = Menu::query()->create([
+        'name' => 'parent-menu',
+        'label' => 'Parent Menu',
+        'type' => 'url',
+        'url' => '/',
+        'target' => '_self',
+        'sort_order' => 0,
+        'is_active' => true,
+    ]);
+
+    $child = Menu::query()->create([
+        'name' => 'child-menu',
+        'label' => 'Child Menu',
+        'type' => 'url',
+        'url' => '/child',
+        'target' => '_self',
+        'sort_order' => 1,
+        'is_active' => true,
+        'parent_id' => $parent->id,
+    ]);
+
+    $service->delete($parent);
+
+    expect($parent->fresh()->trashed())->toBeTrue()
+        ->and($child->fresh()->parent_id)->toBeNull();
+});
+test('menu service creates a menu with an active parent', function () {
+    $service = app(MenuService::class);
+
+    $parent = Menu::query()->create([
+        'name' => 'parent-menu',
+        'label' => 'Parent Menu',
+        'type' => 'url',
+        'url' => '/',
+        'target' => '_self',
+        'sort_order' => 0,
+        'is_active' => true,
+    ]);
+
+    $menuData = new MenuData(
+        name: 'child-menu',
+        label: 'Child Menu',
+        type: 'url',
+        url: '/child',
+        target: '_self',
+        sortOrder: 1,
+        isActive: true,
+        parentId: $parent->id,
+    );
+
+    $menu = $service->create($menuData);
+
+    expect($menu->parent_id)->toBe($parent->id);
+
+    $this->assertDatabaseHas('menus', [
+        'id' => $menu->id,
+        'parent_id' => $parent->id,
+        'name' => 'child-menu',
+    ]);
+});
+test('menu service rejects non existent parent when creating menu', function () {
+    $service = app(MenuService::class);
+
+    $menuData = new MenuData(
+        name: 'child-menu',
+        label: 'Child Menu',
+        type: 'url',
+        url: '/child',
+        target: '_self',
+        sortOrder: 1,
+        isActive: true,
+        parentId: 999999,
+    );
+
+    expect(fn() => $service->create($menuData))
+        ->toThrow(
+            DomainException::class,
+            'The selected parent menu does not exist or has been deleted.'
+        );
+});
+test('menu service updates a menu with an active parent', function () {
+    $service = app(MenuService::class);
+
+    $parent = Menu::query()->create([
+        'name' => 'parent-menu',
+        'label' => 'Parent Menu',
+        'type' => 'url',
+        'url' => '/',
+        'target' => '_self',
+        'sort_order' => 0,
+        'is_active' => true,
+    ]);
+
+    $menu = Menu::query()->create([
+        'name' => 'child-menu',
+        'label' => 'Child Menu',
+        'type' => 'url',
+        'url' => '/child',
+        'target' => '_self',
+        'sort_order' => 1,
+        'is_active' => true,
+    ]);
+
+    $menuData = new MenuData(
+        name: 'child-menu-updated',
+        label: 'Child Menu Updated',
+        type: 'url',
+        url: '/child-updated',
+        target: '_self',
+        sortOrder: 1,
+        isActive: true,
+        parentId: $parent->id,
+    );
+
+    $updatedMenu = $service->update($menu, $menuData);
+
+    expect($updatedMenu->parent_id)->toBe($parent->id);
+
+    $this->assertDatabaseHas('menus', [
+        'id' => $menu->id,
+        'parent_id' => $parent->id,
+        'name' => 'child-menu-updated',
+    ]);
+});
+test('menu service rejects non existent parent when updating menu', function () {
+    $service = app(MenuService::class);
+
+    $menu = Menu::query()->create([
+        'name' => 'child-menu',
+        'label' => 'Child Menu',
+        'type' => 'url',
+        'url' => '/child',
+        'target' => '_self',
+        'sort_order' => 0,
+        'is_active' => true,
+    ]);
+
+    $menuData = new MenuData(
+        name: 'child-menu-updated',
+        label: 'Child Menu Updated',
+        type: 'url',
+        url: '/child-updated',
+        target: '_self',
+        sortOrder: 0,
+        isActive: true,
+        parentId: 999999,
+    );
+
+    expect(fn() => $service->update($menu, $menuData))
+        ->toThrow(
+            DomainException::class,
+            'The selected parent menu does not exist or has been deleted.'
+        );
+});
+
+test('menu service rejects assigning menu as its own parent', function () {
+    $service = app(MenuService::class);
+
+    $menu = Menu::query()->create([
+        'name' => 'self-menu',
+        'label' => 'Self Menu',
+        'type' => 'url',
+        'url' => '/self',
+        'target' => '_self',
+        'sort_order' => 0,
+        'is_active' => true,
+    ]);
+
+    $menuData = new MenuData(
+        name: 'self-menu-updated',
+        label: 'Self Menu Updated',
+        type: 'url',
+        url: '/self-updated',
+        target: '_self',
+        sortOrder: 0,
+        isActive: true,
+        parentId: $menu->id,
+    );
+
+    expect(fn() => $service->update($menu, $menuData))
+        ->toThrow(
+            DomainException::class,
+            'A menu cannot be assigned to one of its descendants.'
+        );
+});

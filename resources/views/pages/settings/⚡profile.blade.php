@@ -5,10 +5,12 @@ use Flux\Flux;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
-new #[Title('Profile settings')] class extends Component {
+// new #[Title('Profile settings')] class extends Component {
+new #[Layout('layouts.admin')] #[Title('Profile settings')] class extends Component {
     use ProfileValidationRules;
 
     public string $name = '';
@@ -42,7 +44,6 @@ new #[Title('Profile settings')] class extends Component {
 
         Flux::toast(variant: 'success', text: __('Profile updated.'));
     }
-
 }; ?>
 
 <section class="w-full">
@@ -69,6 +70,6 @@ new #[Title('Profile settings')] class extends Component {
             </div>
         </form>
 
-            <livewire:pages::settings.delete-user-form />
+        <livewire:pages::settings.delete-user-form />
     </x-pages::settings.layout>
 </section>
