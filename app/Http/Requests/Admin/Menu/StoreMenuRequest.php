@@ -16,6 +16,9 @@ final class StoreMenuRequest extends FormRequest
         return true;
     }
 
+    /**
+     * @return array<string, array<int, mixed>>
+     */
     public function rules(): array
     {
         return [
@@ -56,8 +59,15 @@ final class StoreMenuRequest extends FormRequest
                 'max:255',
                 'required_if:type,route',
                 'prohibited_if:type,url',
-                function (string $attribute, mixed $value, \Closure $fail): void {
-                    if ($value !== null && ! Route::has($value)) {
+                function (
+                    string $attribute,
+                    mixed $value,
+                    \Closure $fail,
+                ): void {
+                    if (
+                        $value !== null
+                        && ! Route::has((string) $value)
+                    ) {
                         $fail('The selected route name does not exist.');
                     }
                 },

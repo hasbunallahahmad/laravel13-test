@@ -1,13 +1,13 @@
 <?php
 
 use App\Http\Controllers\Admin\ContentController;
-use App\Http\Controllers\Admin\MediaController;
-use App\Http\Controllers\Admin\MenuController;
-use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\DashboardController;
-use App\Http\Controllers\Admin\Settings\SettingController;
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Admin\MediaController;
 use App\Http\Controllers\Admin\MediaPickerController;
+use App\Http\Controllers\Admin\MenuController;
+use App\Http\Controllers\Admin\Settings\SettingController;
+use App\Http\Controllers\Admin\UserController;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -18,7 +18,6 @@ use App\Http\Controllers\Admin\MediaPickerController;
 Route::get('/', function () {
     return view('welcome');
 })->name('home');
-
 
 /*
 |--------------------------------------------------------------------------
@@ -35,7 +34,6 @@ Route::get('/dashboard', function () {
     'auth',
     'permission:dashboard.view',
 ])->name('dashboard');
-
 
 /*
 |--------------------------------------------------------------------------
@@ -66,33 +64,44 @@ Route::middleware(['auth'])
         | Menus
         |--------------------------------------------------------------------------
         */
+
         Route::get('/menus', [MenuController::class, 'index'])
             ->middleware('permission:menus.view')
             ->name('menus.index');
 
         Route::get('/menus/create', [MenuController::class, 'create'])
-            ->middleware('permission:menus.view')
+            ->middleware('permission:menus.create')
             ->name('menus.create');
 
-        Route::get('/menus/{menu}/edit', [MenuController::class, 'edit'])
-            ->middleware('permission:menus.view')
-            ->name('menus.edit');
-
         Route::post('/menus', [MenuController::class, 'store'])
-            ->middleware('permission:menus.view')
+            ->middleware('permission:menus.create')
             ->name('menus.store');
-
-        Route::patch('/menus/{menu}', [MenuController::class, 'update'])
-            ->middleware('permission:menus.view')
-            ->name('menus.update');
-
-        Route::delete('/menus/{menu}', [MenuController::class, 'destroy'])
-            ->middleware('permission:menus.view')
-            ->name('menus.destroy');
 
         Route::get('/menus/trash', [MenuController::class, 'trash'])
             ->middleware('permission:menus.view')
             ->name('menus.trash');
+
+        Route::get('/menus/{menu}/edit', [MenuController::class, 'edit'])
+            ->middleware('permission:menus.update')
+            ->name('menus.edit');
+
+        Route::patch('/menus/{menu}', [MenuController::class, 'update'])
+            ->middleware('permission:menus.update')
+            ->name('menus.update');
+
+        Route::delete('/menus/{menu}', [MenuController::class, 'destroy'])
+            ->middleware('permission:menus.delete')
+            ->name('menus.destroy');
+
+        Route::patch('/menus/{menu}/restore', [MenuController::class, 'restore'])
+            ->middleware('permission:menus.restore')
+            ->withTrashed()
+            ->name('menus.restore');
+
+        Route::delete('/menus/{menu}/force-delete', [MenuController::class, 'forceDestroy'])
+            ->middleware('permission:menus.force-delete')
+            ->withTrashed()
+            ->name('menus.force-delete');
 
         /*
         |--------------------------------------------------------------------------
@@ -208,11 +217,6 @@ Route::middleware(['auth'])
             ->withTrashed()
             ->name('contents.force-destroy');
 
-        Route::patch('/menus/{menu}/restore', [MenuController::class, 'restore'])
-            ->middleware('permission:menus.view')
-            ->withTrashed()
-            ->name('menus.restore');
-
         /*
         |--------------------------------------------------------------------------
         | Users
@@ -256,10 +260,10 @@ Route::middleware(['auth'])
             ->name('users.force-destroy');
     });
 
-
 /*
 |--------------------------------------------------------------------------
 | User Settings
 |--------------------------------------------------------------------------
 */
+
 require __DIR__ . '/settings.php';

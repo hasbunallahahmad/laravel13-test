@@ -29,4 +29,43 @@ final class MenuFactory extends Factory
             'is_active' => true,
         ];
     }
+
+    public function url(?string $url = null): static
+    {
+        return $this->state(fn(): array => [
+            'type' => 'url',
+            'url' => $url ?? fake()->url(),
+            'route_name' => null,
+        ]);
+    }
+
+    public function route(string $routeName = 'admin.dashboard'): static
+    {
+        return $this->state([
+            'type' => 'route',
+            'url' => null,
+            'route_name' => $routeName,
+        ]);
+    }
+
+    public function childOf(Menu $parent): static
+    {
+        return $this->state([
+            'parent_id' => $parent->id,
+        ]);
+    }
+
+    public function inactive(): static
+    {
+        return $this->state([
+            'is_active' => false,
+        ]);
+    }
+
+    public function active(): static
+    {
+        return $this->state([
+            'is_active' => true,
+        ]);
+    }
 }

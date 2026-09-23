@@ -17,6 +17,9 @@ final class UpdateMenuRequest extends FormRequest
         return true;
     }
 
+    /**
+     * @return array<string, array<int, mixed>>
+     */
     public function rules(): array
     {
         /** @var Menu|null $menu */
@@ -28,7 +31,8 @@ final class UpdateMenuRequest extends FormRequest
                 'string',
                 'max:255',
                 'regex:/^[a-z0-9_-]+$/',
-                Rule::unique('menus', 'name')->ignore($this->route('menu')),
+                Rule::unique('menus', 'name')
+                    ->ignore($menu?->id),
             ],
 
             'label' => [
@@ -60,8 +64,15 @@ final class UpdateMenuRequest extends FormRequest
                 'max:255',
                 'required_if:type,route',
                 'prohibited_if:type,url',
-                function (string $attribute, mixed $value, \Closure $fail): void {
-                    if ($value !== null && ! Route::has($value)) {
+                function (
+                    string $attribute,
+                    mixed $value,
+                    \Closure $fail,
+                ): void {
+                    if (
+                        $value !== null
+                        && ! Route::has((string) $value)
+                    ) {
                         $fail('The selected route name does not exist.');
                     }
                 },
@@ -95,7 +106,8 @@ final class UpdateMenuRequest extends FormRequest
             'parent_id' => [
                 'nullable',
                 'integer',
-                'exists:menus,id',
+                Rule::exists('menus', 'id')
+                    ->whereNull('deleted_at'),
                 Rule::notIn([
                     $menu?->id,
                 ]),
@@ -117,7 +129,9 @@ final class UpdateMenuRequest extends FormRequest
             icon: $validated['icon'] ?? null,
             sortOrder: (int) ($validated['sort_order'] ?? 0),
             isActive: (bool) ($validated['is_active'] ?? true),
-            parentId: $validated['parent_id'] ?? null,
+            parentId: isset($validated['parent_id'])
+                ? (int) $validated['parent_id']
+                : null,
         );
     }
 }

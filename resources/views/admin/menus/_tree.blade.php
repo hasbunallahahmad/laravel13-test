@@ -88,29 +88,35 @@
                 {{-- Actions --}}
                 <div class="flex items-center justify-start gap-2 md:justify-end">
                     @if ($menu->trashed())
-                        <form action="{{ route('admin.menus.restore', $menu) }}" method="POST">
-                            @csrf
+                        @can('menus.restore')
+                            <form action="{{ route('admin.menus.restore', $menu) }}" method="POST">
+                                @csrf
 
-                            <button type="submit"
-                                class="inline-flex items-center rounded-lg border border-zinc-200 px-3 py-1.5 text-xs font-medium text-zinc-700 transition hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">
-                                Restore
-                            </button>
-                        </form>
+                                <button type="submit"
+                                    class="inline-flex items-center rounded-lg border border-zinc-200 px-3 py-1.5 text-xs font-medium text-zinc-700 transition hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">
+                                    Restore
+                                </button>
+                            </form>
+                        @endcan
                     @else
-                        <a href="{{ route('admin.menus.edit', $menu) }}"
-                            class="inline-flex items-center rounded-lg border border-zinc-200 px-3 py-1.5 text-xs font-medium text-zinc-700 transition hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">
-                            Edit
-                        </a>
+                        @can('menus.update')
+                            <a href="{{ route('admin.menus.edit', $menu) }}"
+                                class="inline-flex items-center rounded-lg border border-zinc-200 px-3 py-1.5 text-xs font-medium text-zinc-700 transition hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">
+                                Edit
+                            </a>
+                        @endcan
 
-                        <form action="{{ route('admin.menus.destroy', $menu) }}" method="POST">
-                            @csrf
-                            @method('DELETE')
+                        @can('menus.delete')
+                            <form action="{{ route('admin.menus.destroy', $menu) }}" method="POST">
+                                @csrf
+                                @method('DELETE')
 
-                            <button type="submit"
-                                class="inline-flex items-center rounded-lg px-3 py-1.5 text-xs font-medium text-red-600 transition hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-500/10">
-                                Delete
-                            </button>
-                        </form>
+                                <button type="submit"
+                                    class="inline-flex items-center rounded-lg px-3 py-1.5 text-xs font-medium text-red-600 transition hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-500/10">
+                                    Delete
+                                </button>
+                            </form>
+                        @endcan
                     @endif
                 </div>
             </div>

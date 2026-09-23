@@ -56,12 +56,11 @@
             </div>
         @endif
 
-        <form action="{{ route('admin.menus.store') }}" method="POST">
+        <form action="{{ route('admin.menus.store') }}" method="POST" data-menu-form>
             @csrf
 
             <div
                 class="overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
-
                 <div class="border-b border-zinc-200 px-6 py-5 dark:border-zinc-700">
                     <h2 class="text-base font-semibold text-zinc-900 dark:text-white">
                         Informasi Menu
@@ -73,7 +72,6 @@
                 </div>
 
                 <div class="grid gap-6 p-6 md:grid-cols-2">
-
                     <div>
                         <label for="name" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
                             Name
@@ -119,7 +117,7 @@
                             Type
                         </label>
 
-                        <select id="type" name="type"
+                        <select id="type" name="type" data-menu-type
                             class="mt-2 block w-full rounded-lg border-zinc-300 bg-white px-3 py-2.5 text-sm text-zinc-900 shadow-sm outline-none transition focus:border-zinc-500 focus:ring-2 focus:ring-zinc-500/20 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white">
                             <option value="route" @selected(old('type', 'route') === 'route')>
                                 Route
@@ -165,13 +163,13 @@
                 </div>
 
                 <div class="grid gap-6 p-6 md:grid-cols-2">
-
-                    <div>
+                    <div data-menu-route-field>
                         <label for="route_name" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
                             Route Name
                         </label>
 
                         <input id="route_name" type="text" name="route_name" value="{{ old('route_name') }}"
+                            data-menu-route-input
                             class="mt-2 block w-full rounded-lg border-zinc-300 bg-white px-3 py-2.5 text-sm text-zinc-900 shadow-sm outline-none transition placeholder:text-zinc-400 focus:border-zinc-500 focus:ring-2 focus:ring-zinc-500/20 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white dark:placeholder:text-zinc-500"
                             placeholder="admin.dashboard">
 
@@ -182,12 +180,13 @@
                         @enderror
                     </div>
 
-                    <div>
+                    <div data-menu-url-field>
                         <label for="url" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
                             URL
                         </label>
 
                         <input id="url" type="url" name="url" value="{{ old('url') }}"
+                            data-menu-url-input
                             class="mt-2 block w-full rounded-lg border-zinc-300 bg-white px-3 py-2.5 text-sm text-zinc-900 shadow-sm outline-none transition placeholder:text-zinc-400 focus:border-zinc-500 focus:ring-2 focus:ring-zinc-500/20 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white dark:placeholder:text-zinc-500"
                             placeholder="https://example.com">
 
@@ -233,7 +232,6 @@
                 </div>
 
                 <div class="grid gap-6 p-6 md:grid-cols-2">
-
                     <div>
                         <label for="parent_id" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
                             Parent Menu
@@ -304,14 +302,44 @@
                         Batal
                     </a>
 
-                    {{-- <button type="submit"
-                        class="inline-flex items-center justify-center gap-2 rounded-lg bg-zinc-900 px-5 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-zinc-500/30 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200">
-                        Simpan
-                    </button> --}}
-
                     <button type="submit">Simpan</button>
                 </div>
             </div>
         </form>
     </div>
+
+    <script>
+        (() => {
+            const form = document.querySelector('[data-menu-form]');
+
+            if (!form) {
+                return;
+            }
+
+            const type = form.querySelector('[data-menu-type]');
+            const routeField = form.querySelector('[data-menu-route-field]');
+            const routeInput = form.querySelector('[data-menu-route-input]');
+            const urlField = form.querySelector('[data-menu-url-field]');
+            const urlInput = form.querySelector('[data-menu-url-input]');
+
+            const syncDestinationFields = () => {
+                const isRoute = type?.value === 'route';
+
+                routeField?.classList.toggle('hidden', !isRoute);
+                urlField?.classList.toggle('hidden', isRoute);
+
+                if (routeInput) {
+                    routeInput.disabled = !isRoute;
+                }
+
+                if (urlInput) {
+                    urlInput.disabled = isRoute;
+                }
+            };
+
+            type?.addEventListener('change', syncDestinationFields);
+
+            syncDestinationFields();
+        })();
+    </script>
 </x-layouts::admin>

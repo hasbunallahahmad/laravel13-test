@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
@@ -7,7 +9,7 @@ use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
 
-class RolePermissionSeeder extends Seeder
+final class RolePermissionSeeder extends Seeder
 {
     /**
      * Run the database seeds.
@@ -150,7 +152,6 @@ class RolePermissionSeeder extends Seeder
             'content.publish',
             'content.restore',
             'content.force-delete',
-
 
             'media.view',
             'media.create',

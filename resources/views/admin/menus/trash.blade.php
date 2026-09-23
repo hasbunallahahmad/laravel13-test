@@ -6,10 +6,12 @@
             <div>
                 <div class="flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400">
 
-                    <a href="{{ route('admin.menus.index') }}"
-                        class="transition hover:text-zinc-900 dark:hover:text-white">
-                        Menu Management
-                    </a>
+                    @can('menus.view')
+                        <a href="{{ route('admin.menus.index') }}"
+                            class="transition hover:text-zinc-900 dark:hover:text-white">
+                            Menu Management
+                        </a>
+                    @endcan
 
                     <span>/</span>
 
@@ -28,20 +30,23 @@
                 </p>
             </div>
 
-            <a href="{{ route('admin.menus.index') }}"
-                class="inline-flex items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-sm font-medium text-zinc-700 shadow-sm transition hover:bg-zinc-50 focus:outline-none focus:ring-2 focus:ring-zinc-500/30 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700">
-                <svg xmlns="http://www.w3.org/2000/svg" class="size-4" fill="none" viewBox="0 0 24 24"
-                    stroke="currentColor" stroke-width="1.8">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
-                </svg>
+            @can('menus.view')
+                <a href="{{ route('admin.menus.index') }}"
+                    class="inline-flex items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-sm font-medium text-zinc-700 shadow-sm transition hover:bg-zinc-50 focus:outline-none focus:ring-2 focus:ring-zinc-500/30 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="size-4" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor" stroke-width="1.8">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+                    </svg>
 
-                Kembali
-            </a>
+                    Kembali
+                </a>
+            @endcan
 
         </div>
 
         <div
             class="overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
+
             <div class="border-b border-zinc-200 px-6 py-5 dark:border-zinc-700">
 
                 <div class="flex items-start gap-3">
@@ -91,13 +96,16 @@
                     </h3>
 
                     <p class="mt-1 max-w-sm text-sm text-zinc-500 dark:text-zinc-400">
-                        Semua menu masih aktif dalam daftar menu atau belum ada menu yang dipindahkan ke tempat sampah.
+                        Semua menu masih aktif dalam daftar menu atau belum ada menu yang dipindahkan ke tempat
+                        sampah.
                     </p>
 
-                    <a href="{{ route('admin.menus.index') }}"
-                        class="mt-5 inline-flex items-center justify-center rounded-lg bg-zinc-900 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-zinc-500/30 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200">
-                        Kembali ke Menu
-                    </a>
+                    @can('menus.view')
+                        <a href="{{ route('admin.menus.index') }}"
+                            class="mt-5 inline-flex items-center justify-center rounded-lg bg-zinc-900 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-zinc-500/30 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200">
+                            Kembali ke Menu
+                        </a>
+                    @endcan
 
                 </div>
             @else
@@ -138,27 +146,51 @@
 
                             </div>
 
+                            <div class="flex shrink-0 flex-col gap-2 sm:flex-row">
 
-                            <form action="{{ route('admin.menus.restore', $menu) }}" method="POST" class="shrink-0">
+                                @can('menus.restore')
+                                    <form action="{{ route('admin.menus.restore', $menu) }}" method="POST">
+                                        @csrf
+                                        @method('PATCH')
 
-                                @csrf
+                                        <button type="submit"
+                                            class="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-sm font-medium text-zinc-700 shadow-sm transition hover:bg-zinc-50 focus:outline-none focus:ring-2 focus:ring-zinc-500/30 sm:w-auto dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700">
 
-                                @method('PATCH')
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="size-4" fill="none"
+                                                viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                                                <path stroke-linecap="round" stroke-linejoin="round"
+                                                    d="M9 15 3 9m0 0 6-6M3 9h11.25a6.75 6.75 0 0 1 6.75 6.75v.75" />
+                                            </svg>
 
-                                <button type="submit"
-                                    class="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-sm font-medium text-zinc-700 shadow-sm transition hover:bg-zinc-50 focus:outline-none focus:ring-2 focus:ring-zinc-500/30 sm:w-auto dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700">
+                                            Restore
 
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="size-4" fill="none"
-                                        viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M9 15 3 9m0 0 6-6M3 9h11.25a6.75 6.75 0 0 1 6.75 6.75v.75" />
-                                    </svg>
+                                        </button>
+                                    </form>
+                                @endcan
 
-                                    Restore
+                                @can('menus.force-delete')
+                                    <form action="{{ route('admin.menus.force-delete', $menu) }}" method="POST"
+                                        onsubmit="return confirm('Menu ini akan dihapus secara permanen. Tindakan ini tidak dapat dibatalkan. Lanjutkan?');">
 
-                                </button>
+                                        @csrf
+                                        @method('DELETE')
 
-                            </form>
+                                        <button type="submit"
+                                            class="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-red-200 bg-white px-4 py-2.5 text-sm font-medium text-red-600 shadow-sm transition hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500/30 sm:w-auto dark:border-red-900/60 dark:bg-zinc-800 dark:text-red-400 dark:hover:bg-red-950/30">
+
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="size-4" fill="none"
+                                                viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                                                <path stroke-linecap="round" stroke-linejoin="round"
+                                                    d="m9.75 9.75.5 6m4-6-.5 6M6.75 6.75h10.5m-9 0 .75-2.25h4.5l.75 2.25m-7.5 0 .75 12.75a1.5 1.5 0 0 0 1.5 1.5h4.5a1.5 1.5 0 0 0 1.5-1.5l.75-12.75" />
+                                            </svg>
+
+                                            Hapus Permanen
+
+                                        </button>
+                                    </form>
+                                @endcan
+
+                            </div>
 
                         </div>
                     @endforeach

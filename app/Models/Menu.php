@@ -26,7 +26,8 @@ use Illuminate\Support\Str;
 ])]
 final class Menu extends Model
 {
-    use SoftDeletes, HasFactory;
+    use HasFactory;
+    use SoftDeletes;
 
     protected static function booted(): void
     {
