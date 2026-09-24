@@ -331,6 +331,17 @@ test('admin menu create page is accessible with menu create permission', functio
         ->assertOk();
 });
 
+
+test('admin menu create page is accessible with menu create permission', function () {
+    $user = User::factory()->create();
+
+    $user->givePermissionTo('menus.create');
+
+    $this->actingAs($user)
+        ->get(route('admin.menus.create'))
+        ->assertOk();
+});
+
 test('admin menu create page provides parent menus', function () {
     $user = User::factory()->create();
 
@@ -465,7 +476,7 @@ test('admin menu create page displays parent menu field', function () {
     $response->assertSee('name="parent_id"', false);
 });
 
-test('admin menu store requires menu view permission', function () {
+test('admin menu store requires menu create permission', function () {
     $user = User::factory()->create();
 
     $response = $this->actingAs($user)
@@ -2973,7 +2984,11 @@ function actingAsMenuViewer(): User
 }
 
 test('admin menu edit page is accessible', function () {
+
     $user = actingAsMenuViewer();
+
+    $user->givePermissionTo('menus.update');
+
     $menu = Menu::factory()->create([
         'name' => 'main-menu',
         'label' => 'Menu Utama',
@@ -3222,7 +3237,11 @@ it('admin menu edit page does not provide soft deleted parent menus', function (
 });
 
 it('admin menu edit page does not allow the menu itself as parent', function () {
-    $user = actingAsMenuViewer();
+
+    $user = User::factory()->create();
+
+    $user->givePermissionTo('menus.view');
+
     $menu = Menu::factory()->create([
         'name' => 'main-menu',
         'label' => 'Menu Utama',
@@ -3241,7 +3260,10 @@ it('admin menu edit page does not allow the menu itself as parent', function () 
 });
 
 it('admin menu edit page displays the active status correctly', function () {
-    $user = actingAsMenuViewer();
+    $user = User::factory()->create();
+
+    $user->givePermissionTo('menus.view');
+
     $menu = Menu::factory()->create([
         'name' => 'main-menu',
         'label' => 'Menu Utama',
@@ -3261,7 +3283,10 @@ it('admin menu edit page displays the active status correctly', function () {
 });
 
 it('admin menu edit page contains save button inside update form', function () {
-    $user = actingAsMenuViewer();
+    $user = User::factory()->create();
+
+    $user->givePermissionTo('menus.view');
+
     $menu = Menu::factory()->create([
         'name' => 'main-menu',
         'label' => 'Menu Utama',
@@ -3342,7 +3367,9 @@ test('admin menu index provides create menu link', function () {
 });
 
 test('admin can view trashed menus', function () {
-    $user = actingAsMenuViewer();
+    $user = User::factory()->create();
+
+    $user->givePermissionTo('menus.view');
 
     $menu = Menu::factory()->create([
         'name' => 'deleted-menu',
@@ -3359,7 +3386,9 @@ test('admin can view trashed menus', function () {
 });
 
 test('admin menu trash only displays trashed menus', function () {
-    $user = actingAsMenuViewer();
+    $user = User::factory()->create();
+
+    $user->givePermissionTo('menus.view');
 
     $activeMenu = Menu::factory()->create([
         'name' => 'active-menu',
@@ -3384,7 +3413,10 @@ test('admin menu trash only displays trashed menus', function () {
 test('admin menu trash provides restore action for trashed menu', function () {
     $user = User::factory()->create();
 
-    $user->givePermissionTo('menus.view');
+    $user->givePermissionTo([
+        'menus.view',
+        'menus.restore',
+    ]);
 
     $menu = Menu::factory()->create([
         'name' => 'deleted-menu',
@@ -3426,7 +3458,12 @@ test('admin menu trash hides restore action without restore permission', functio
 });
 
 test('admin menu trash restore form uses patch method', function () {
-    $user = actingAsMenuViewer();
+    $user = User::factory()->create();
+
+    $user->givePermissionTo([
+        'menus.view',
+        'menus.restore',
+    ]);
 
     $menu = Menu::factory()->create([
         'name' => 'deleted-menu',
@@ -3486,7 +3523,9 @@ test('admin cannot restore an active menu', function () {
 });
 
 test('admin sees empty state when menu trash is empty', function () {
-    $user = actingAsMenuViewer();
+    $user = User::factory()->create();
+
+    $user->givePermissionTo('menus.view');
 
     $response = $this->actingAs($user)
         ->get(route('admin.menus.trash'));
@@ -3503,7 +3542,7 @@ test('user without menu view permission cannot view menu trash', function () {
     $response->assertForbidden();
 });
 
-test('user without menu view permission cannot restore a menu', function () {
+test('user without menu restore permission cannot restore a menu', function () {
     $user = User::factory()->create();
 
     $menu = Menu::factory()->create([
@@ -3522,7 +3561,9 @@ test('user without menu view permission cannot restore a menu', function () {
 });
 
 it('admin menu create page does not provide soft deleted parent menus', function () {
-    $user = actingAsMenuViewer();
+    $user = User::factory()->create();
+
+    $user->givePermissionTo('menus.create');
 
     $deletedParent = Menu::factory()->create([
         'name' => 'deleted-parent',
@@ -3572,7 +3613,9 @@ test('admin can restore a trashed child menu with its active parent', function (
 });
 
 test('admin cannot edit a trashed menu', function () {
-    $user = actingAsMenuViewer();
+    $user = User::factory()->create();
+
+    $user->givePermissionTo('menus.view');
 
     $menu = Menu::factory()->create([
         'name' => 'deleted-menu',
