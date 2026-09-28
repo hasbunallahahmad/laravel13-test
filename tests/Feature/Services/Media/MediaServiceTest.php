@@ -159,6 +159,35 @@ test('it stores file information returned by storage service', function () {
 |--------------------------------------------------------------------------
 */
 
+test('it deletes stored non-image file when media database creation fails', function () {
+    $file = UploadedFile::fake()->create(
+        'document.pdf',
+        100,
+        'application/pdf',
+    );
+
+    Media::creating(function (): void {
+        throw new RuntimeException(
+            'Simulated media persistence failure for pdf.',
+        );
+    });
+
+    expect(fn () => app(MediaService::class)->upload(
+        new MediaUploadData(
+            file: $file,
+        ),
+    ))->toThrow(
+        RuntimeException::class,
+        'Simulated media persistence failure for pdf.',
+    );
+
+    expect(Media::query()->count())
+        ->toBe(0);
+
+    expect(Storage::disk('public')->allFiles('media'))
+        ->toBe([]);
+});
+
 test('it deletes stored file when media database creation fails', function () {
     $user = User::factory()->create();
 
