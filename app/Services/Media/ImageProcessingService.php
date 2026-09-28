@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services\Media;
 
 use Illuminate\Http\UploadedFile;
@@ -8,8 +10,10 @@ use Intervention\Image\Drivers\Gd\Driver;
 use Intervention\Image\Format;
 use Intervention\Image\ImageManager;
 use InvalidArgumentException;
+use RuntimeException;
+use Throwable;
 
-class ImageProcessingService
+final class ImageProcessingService
 {
     private const MAX_SOURCE_WIDTH = 4000;
 
@@ -21,15 +25,19 @@ class ImageProcessingService
 
     private const THUMBNAIL_QUALITY = 80;
 
+    private const STORAGE_DISK = 'public';
+
     public function __construct(
         private readonly ImageManager $manager = new ImageManager(
             new Driver(),
         ),
-    ) {
-    }
+    ) {}
 
     /**
      * Process an uploaded image and create optimized derivatives.
+     *
+     * If any derivative fails after one or more files have been written,
+     * all files created during this processing attempt are removed.
      *
      * @return array{
      *     original_path: string,
@@ -54,39 +62,51 @@ class ImageProcessingService
 
         $this->validateDimensions($width, $height);
 
-        $extension = $this->extensionForMimeType($mimeType);
+        $storedPaths = [];
 
-        $originalPath = $this->storeOriginal(
-            file: $file,
-            directory: $directory,
-            filename: $filename,
-            extension: $extension,
-        );
+        try {
+            $originalPath = $this->storeOriginal(
+                file: $file,
+                directory: $directory,
+                filename: $filename,
+                extension: $this->extensionForMimeType($mimeType),
+            );
 
-        $webpPath = null;
+            $storedPaths[] = $originalPath;
 
-        if ($mimeType !== 'image/webp') {
-            $webpPath = $this->buildWebp(
+            $webpPath = null;
+
+            if ($this->shouldCreateWebp($mimeType)) {
+                $webpPath = $this->buildWebp(
+                    image: $image,
+                    directory: $directory,
+                    filename: $filename,
+                );
+
+                $storedPaths[] = $webpPath;
+            }
+
+            $thumbnailPath = $this->buildThumbnail(
                 image: $image,
                 directory: $directory,
                 filename: $filename,
             );
+
+            $storedPaths[] = $thumbnailPath;
+
+            return [
+                'original_path' => $originalPath,
+                'webp_path' => $webpPath,
+                'thumbnail_path' => $thumbnailPath,
+                'width' => $width,
+                'height' => $height,
+                'mime_type' => $mimeType,
+            ];
+        } catch (Throwable $exception) {
+            $this->cleanupPaths($storedPaths);
+
+            throw $exception;
         }
-
-        $thumbnailPath = $this->buildThumbnail(
-            image: $image,
-            directory: $directory,
-            filename: $filename,
-        );
-
-        return [
-            'original_path' => $originalPath,
-            'webp_path' => $webpPath,
-            'thumbnail_path' => $thumbnailPath,
-            'width' => $width,
-            'height' => $height,
-            'mime_type' => $mimeType,
-        ];
     }
 
     private function detectMimeType(UploadedFile $file): string
@@ -120,22 +140,42 @@ class ImageProcessingService
         }
     }
 
+    private function shouldCreateWebp(string $mimeType): bool
+    {
+        return $mimeType !== 'image/webp';
+    }
+
     private function storeOriginal(
         UploadedFile $file,
         string $directory,
         string $filename,
         string $extension,
     ): string {
-        $path = trim($directory, '/')
-            .'/'
-            .$filename
-            .'.'
-            .$extension;
-
-        Storage::disk('public')->put(
-            $path,
-            file_get_contents($file->getRealPath()),
+        $path = $this->buildPath(
+            directory: $directory,
+            filename: $filename,
+            suffix: '',
+            extension: $extension,
         );
+
+        $contents = file_get_contents($file->getRealPath());
+
+        if ($contents === false) {
+            throw new InvalidArgumentException(
+                'Unable to read uploaded image.',
+            );
+        }
+
+        $stored = Storage::disk(self::STORAGE_DISK)->put(
+            $path,
+            $contents,
+        );
+
+        if ($stored === false) {
+            throw new RuntimeException(
+                'Unable to store original image.',
+            );
+        }
 
         return $path;
     }
@@ -150,15 +190,23 @@ class ImageProcessingService
             quality: self::WEBP_QUALITY,
         );
 
-        $path = trim($directory, '/')
-            .'/'
-            .$filename
-            .'.webp';
+        $path = $this->buildPath(
+            directory: $directory,
+            filename: $filename,
+            suffix: '',
+            extension: 'webp',
+        );
 
-        Storage::disk('public')->put(
+        $stored = Storage::disk(self::STORAGE_DISK)->put(
             $path,
             (string) $encoded,
         );
+
+        if ($stored === false) {
+            throw new RuntimeException(
+                'Unable to store WebP image.',
+            );
+        }
 
         return $path;
     }
@@ -180,17 +228,51 @@ class ImageProcessingService
             quality: self::THUMBNAIL_QUALITY,
         );
 
-        $path = trim($directory, '/')
-            .'/'
-            .$filename
-            .'-thumb.webp';
+        $path = $this->buildPath(
+            directory: $directory,
+            filename: $filename,
+            suffix: '-thumb',
+            extension: 'webp',
+        );
 
-        Storage::disk('public')->put(
+        $stored = Storage::disk(self::STORAGE_DISK)->put(
             $path,
             (string) $encoded,
         );
 
+        if ($stored === false) {
+            throw new RuntimeException(
+                'Unable to store thumbnail image.',
+            );
+        }
+
         return $path;
+    }
+
+    /**
+     * @param list<string> $paths
+     */
+    private function cleanupPaths(array $paths): void
+    {
+        if ($paths === []) {
+            return;
+        }
+
+        Storage::disk(self::STORAGE_DISK)->delete($paths);
+    }
+
+    private function buildPath(
+        string $directory,
+        string $filename,
+        string $suffix,
+        string $extension,
+    ): string {
+        return trim($directory, '/')
+            . '/'
+            . $filename
+            . $suffix
+            . '.'
+            . $extension;
     }
 
     private function extensionForMimeType(string $mimeType): string

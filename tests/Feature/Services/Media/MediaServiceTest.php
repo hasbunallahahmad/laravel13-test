@@ -101,6 +101,130 @@ test('it stores image dimensions in metadata', function () {
         ->toHaveKey('height', 800);
 });
 
+test('it stores processed image variants in metadata', function () {
+    $user = User::factory()->create();
+
+    $file = UploadedFile::fake()->image(
+        'gedung-dinas.jpg',
+        1200,
+        800,
+    );
+
+    $media = app(MediaService::class)->upload(
+        new MediaUploadData(
+            file: $file,
+            uploadedBy: $user->id,
+        ),
+    );
+
+    expect($media->metadata)
+        ->toHaveKey('variants');
+
+    expect($media->metadata['variants'])
+        ->toBeArray()
+        ->toHaveKey('webp')
+        ->toHaveKey('thumbnail');
+
+    expect($media->metadata['variants']['webp'])
+        ->toBeString()
+        ->toEndWith('.webp');
+
+    expect($media->metadata['variants']['thumbnail'])
+        ->toBeString()
+        ->toEndWith('-thumb.webp');
+
+    Storage::disk('public')->assertExists(
+        $media->metadata['variants']['webp'],
+    );
+
+    Storage::disk('public')->assertExists(
+        $media->metadata['variants']['thumbnail'],
+    );
+});
+
+test('it does not create a duplicate webp variant for webp uploads', function () {
+    $user = User::factory()->create();
+
+    $file = UploadedFile::fake()->image(
+        'optimized.webp',
+        1200,
+        800,
+    );
+
+    $media = app(MediaService::class)->upload(
+        new MediaUploadData(
+            file: $file,
+            uploadedBy: $user->id,
+        ),
+    );
+
+    expect($media->extension)
+        ->toBe('webp');
+
+    expect($media->metadata['variants']['webp'])
+        ->toBeNull();
+
+    expect($media->metadata['variants']['thumbnail'])
+        ->toBeString()
+        ->toEndWith('-thumb.webp');
+
+    Storage::disk('public')->assertExists(
+        $media->storage_path,
+    );
+
+    Storage::disk('public')->assertExists(
+        $media->metadata['variants']['thumbnail'],
+    );
+
+    expect(Storage::disk('public')->allFiles('media'))
+        ->toHaveCount(2);
+});
+
+test('it permanently deletes image and all processed variants', function () {
+    $user = User::factory()->create();
+
+    $file = UploadedFile::fake()->image(
+        'gedung-dinas.jpg',
+        1200,
+        800,
+    );
+
+    $media = app(MediaService::class)->upload(
+        new MediaUploadData(
+            file: $file,
+            uploadedBy: $user->id,
+        ),
+    );
+
+    $originalPath = $media->storage_path;
+    $webpPath = $media->metadata['variants']['webp'];
+    $thumbnailPath = $media->metadata['variants']['thumbnail'];
+
+    Storage::disk('public')->assertExists($originalPath);
+    Storage::disk('public')->assertExists($webpPath);
+    Storage::disk('public')->assertExists($thumbnailPath);
+
+    $media->delete();
+
+    expect($media->trashed())
+        ->toBeTrue();
+
+    app(MediaService::class)->forceDelete($media);
+
+    expect(
+        Media::withTrashed()
+            ->whereKey($media->id)
+            ->exists(),
+    )->toBeFalse();
+
+    Storage::disk('public')->assertMissing($originalPath);
+    Storage::disk('public')->assertMissing($webpPath);
+    Storage::disk('public')->assertMissing($thumbnailPath);
+
+    expect(Storage::disk('public')->allFiles('media'))
+        ->toBe([]);
+});
+
 test('it stores empty metadata for pdf', function () {
     $user = User::factory()->create();
 
@@ -403,7 +527,7 @@ test('it deletes all processed image files when media database creation fails', 
 
     $service = app(MediaService::class);
 
-    expect(fn () => $service->upload(
+    expect(fn() => $service->upload(
         new MediaUploadData(
             file: $file,
         ),
@@ -432,7 +556,7 @@ test('it rethrows the original exception after cleaning up processed image files
         );
     });
 
-    expect(fn () => app(MediaService::class)->upload(
+    expect(fn() => app(MediaService::class)->upload(
         new MediaUploadData(
             file: $file,
         ),

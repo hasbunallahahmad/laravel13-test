@@ -1147,7 +1147,7 @@ test('admin menu update allows keeping its own name', function () {
 test('admin menu delete soft deletes a menu', function () {
     $user = User::factory()->create();
 
-    $user->givePermissionTo('menus.update');
+    $user->givePermissionTo('menus.delete');
 
     $menu = Menu::factory()->create();
 
@@ -1179,7 +1179,7 @@ test('admin menu delete requires menu view permission', function () {
 test('admin menu delete uses uuid route model binding', function () {
     $user = User::factory()->create();
 
-    $user->givePermissionTo('menus.update');
+    $user->givePermissionTo('menus.delete');
 
     $menu = Menu::factory()->create();
 
@@ -1197,7 +1197,7 @@ test('admin menu delete uses uuid route model binding', function () {
 test('admin menu delete nullifies children parent id', function () {
     $user = User::factory()->create();
 
-    $user->givePermissionTo('menus.update');
+    $user->givePermissionTo('menus.delete');
 
     $parent = Menu::factory()->create([
         'name' => 'parent-menu',
@@ -1227,7 +1227,7 @@ test('admin menu delete nullifies children parent id', function () {
 test('admin menu delete cannot delete an already deleted menu', function () {
     $user = User::factory()->create();
 
-    $user->givePermissionTo('menus.view');
+    $user->givePermissionTo('menus.delete');
 
     $menu = Menu::factory()->create();
 
@@ -1246,7 +1246,7 @@ test('admin menu delete cannot delete an already deleted menu', function () {
 test('admin menu delete preserves multiple children', function () {
     $user = User::factory()->create();
 
-    $user->givePermissionTo('menus.view');
+    $user->givePermissionTo('menus.delete');
 
     $parent = Menu::factory()->create([
         'name' => 'parent-menu',
@@ -1277,7 +1277,7 @@ test('admin menu delete preserves multiple children', function () {
 test('admin menu delete preserves deep hierarchy', function () {
     $user = User::factory()->create();
 
-    $user->givePermissionTo('menus.view');
+    $user->givePermissionTo('menus.delete');
 
     $parent = Menu::factory()->create([
         'name' => 'parent-menu',
@@ -1318,7 +1318,7 @@ test('admin menu delete preserves deep hierarchy', function () {
 test('admin menu restore restores a deleted menu', function () {
     $user = User::factory()->create();
 
-    $user->givePermissionTo('menus.view');
+    $user->givePermissionTo('menus.restore');
 
     $menu = Menu::factory()->create();
 
@@ -1338,7 +1338,7 @@ test('admin menu restore restores a deleted menu', function () {
 test('admin menu restore cannot restore an active menu', function () {
     $user = User::factory()->create();
 
-    $user->givePermissionTo('menus.view');
+    $user->givePermissionTo('menus.restore');
 
     $menu = Menu::factory()->create();
 
@@ -1373,7 +1373,7 @@ test('admin menu restore requires menu view permission', function () {
 test('admin menu restore preserves children hierarchy', function () {
     $user = User::factory()->create();
 
-    $user->givePermissionTo('menus.view');
+    $user->givePermissionTo('menus.restore');
 
     $parent = Menu::factory()->create([
         'name' => 'parent-menu',
@@ -1409,7 +1409,7 @@ test('admin menu restore preserves children hierarchy', function () {
 test('admin menu restore uses uuid route model binding', function () {
     $user = User::factory()->create();
 
-    $user->givePermissionTo('menus.view');
+    $user->givePermissionTo('menus.restore');
 
     $menu = Menu::factory()->create();
 
@@ -1430,7 +1430,7 @@ test('admin menu restore uses uuid route model binding', function () {
 test('admin menu store rejects soft deleted parent', function () {
     $user = User::factory()->create();
 
-    $user->givePermissionTo('menus.view');
+    $user->givePermissionTo('menus.create');
 
     $parent = Menu::factory()->create();
 
@@ -1586,7 +1586,7 @@ test('admin menu update rejects deep circular hierarchy', function () {
 test('admin menu store rejects name used by soft deleted menu', function () {
     $user = User::factory()->create();
 
-    $user->givePermissionTo('menus.view');
+    $user->givePermissionTo('menus.create');
 
     $deletedMenu = Menu::factory()->create([
         'name' => 'deleted-menu',
@@ -1614,7 +1614,7 @@ test('admin menu store rejects name used by soft deleted menu', function () {
 test('admin menu update rejects name used by soft deleted menu', function () {
     $user = User::factory()->create();
 
-    $user->givePermissionTo('menus.view');
+    $user->givePermissionTo('menus.update');
 
     $menu = Menu::factory()->create([
         'name' => 'active-menu',
@@ -1646,7 +1646,7 @@ test('admin menu update rejects name used by soft deleted menu', function () {
 test('admin menu store rejects invalid type', function () {
     $user = User::factory()->create();
 
-    $user->givePermissionTo('menus.view');
+    $user->givePermissionTo('menus.create');
 
     $response = $this->actingAs($user)
         ->post(route('admin.menus.store'), [
@@ -1668,7 +1668,7 @@ test('admin menu store rejects invalid type', function () {
 test('admin menu update rejects invalid type', function () {
     $user = User::factory()->create();
 
-    $user->givePermissionTo('menus.view');
+    $user->givePermissionTo('menus.update');
 
     $menu = Menu::factory()->create([
         'type' => 'url',
@@ -1696,7 +1696,7 @@ test('admin menu update rejects invalid type', function () {
 test('admin menu store rejects invalid target', function () {
     $user = User::factory()->create();
 
-    $user->givePermissionTo('menus.view');
+    $user->givePermissionTo('menus.create');
 
     $response = $this->actingAs($user)
         ->post(route('admin.menus.store'), [
@@ -1719,7 +1719,7 @@ test('admin menu store rejects invalid target', function () {
 test('admin menu update rejects invalid target', function () {
     $user = User::factory()->create();
 
-    $user->givePermissionTo('menus.view');
+    $user->givePermissionTo('menus.update');
 
     $menu = Menu::factory()->create([
         'type' => 'url',
@@ -1748,7 +1748,7 @@ test('admin menu update rejects invalid target', function () {
 test('admin menu store rejects negative sort order', function () {
     $user = User::factory()->create();
 
-    $user->givePermissionTo('menus.view');
+    $user->givePermissionTo('menus.create');
 
     $response = $this->actingAs($user)
         ->post(route('admin.menus.store'), [
@@ -1770,7 +1770,7 @@ test('admin menu store rejects negative sort order', function () {
 test('admin menu update rejects negative sort order', function () {
     $user = User::factory()->create();
 
-    $user->givePermissionTo('menus.view');
+    $user->givePermissionTo('menus.update');
 
     $menu = Menu::factory()->create([
         'type' => 'url',
@@ -1799,7 +1799,7 @@ test('admin menu update rejects negative sort order', function () {
 test('admin menu store rejects invalid is active value', function () {
     $user = User::factory()->create();
 
-    $user->givePermissionTo('menus.view');
+    $user->givePermissionTo('menus.create');
 
     $response = $this->actingAs($user)
         ->post(route('admin.menus.store'), [
@@ -1821,7 +1821,7 @@ test('admin menu store rejects invalid is active value', function () {
 test('admin menu update rejects invalid is active value', function () {
     $user = User::factory()->create();
 
-    $user->givePermissionTo('menus.view');
+    $user->givePermissionTo('menus.update');
 
     $menu = Menu::factory()->create([
         'type' => 'url',
@@ -1850,7 +1850,7 @@ test('admin menu update rejects invalid is active value', function () {
 test('admin menu store rejects icon exceeding maximum length', function () {
     $user = User::factory()->create();
 
-    $user->givePermissionTo('menus.view');
+    $user->givePermissionTo('menus.create');
 
     $response = $this->actingAs($user)
         ->post(route('admin.menus.store'), [
@@ -1873,7 +1873,7 @@ test('admin menu store rejects icon exceeding maximum length', function () {
 test('admin menu update rejects icon exceeding maximum length', function () {
     $user = User::factory()->create();
 
-    $user->givePermissionTo('menus.view');
+    $user->givePermissionTo('menus.update');
 
     $menu = Menu::factory()->create([
         'type' => 'url',
@@ -1903,7 +1903,7 @@ test('admin menu update rejects icon exceeding maximum length', function () {
 test('admin menu store rejects name exceeding maximum length', function () {
     $user = User::factory()->create();
 
-    $user->givePermissionTo('menus.view');
+    $user->givePermissionTo('menus.create');
 
     $response = $this->actingAs($user)
         ->post(route('admin.menus.store'), [
@@ -1925,7 +1925,7 @@ test('admin menu store rejects name exceeding maximum length', function () {
 test('admin menu update rejects name exceeding maximum length', function () {
     $user = User::factory()->create();
 
-    $user->givePermissionTo('menus.view');
+    $user->givePermissionTo('menus.update');
 
     $menu = Menu::factory()->create([
         'name' => 'original-menu',
@@ -1951,7 +1951,7 @@ test('admin menu update rejects name exceeding maximum length', function () {
 test('admin menu store rejects label exceeding maximum length', function () {
     $user = User::factory()->create();
 
-    $user->givePermissionTo('menus.view');
+    $user->givePermissionTo('menus.create');
 
     $response = $this->actingAs($user)
         ->post(route('admin.menus.store'), [
@@ -1973,7 +1973,7 @@ test('admin menu store rejects label exceeding maximum length', function () {
 test('admin menu update rejects label exceeding maximum length', function () {
     $user = User::factory()->create();
 
-    $user->givePermissionTo('menus.view');
+    $user->givePermissionTo('menus.update');
 
     $menu = Menu::factory()->create([
         'label' => 'Original Label',
@@ -1999,7 +1999,7 @@ test('admin menu update rejects label exceeding maximum length', function () {
 test('admin menu store rejects url exceeding maximum length', function () {
     $user = User::factory()->create();
 
-    $user->givePermissionTo('menus.view');
+    $user->givePermissionTo('menus.create');
 
     $response = $this->actingAs($user)
         ->post(route('admin.menus.store'), [
@@ -2021,7 +2021,7 @@ test('admin menu store rejects url exceeding maximum length', function () {
 test('admin menu update rejects url exceeding maximum length', function () {
     $user = User::factory()->create();
 
-    $user->givePermissionTo('menus.view');
+    $user->givePermissionTo('menus.update');
 
     $menu = Menu::factory()->create([
         'type' => 'url',
@@ -2048,7 +2048,7 @@ test('admin menu update rejects url exceeding maximum length', function () {
 test('admin menu store rejects route name exceeding maximum length', function () {
     $user = User::factory()->create();
 
-    $user->givePermissionTo('menus.view');
+    $user->givePermissionTo('menus.create');
 
     $response = $this->actingAs($user)
         ->post(route('admin.menus.store'), [
@@ -2070,7 +2070,7 @@ test('admin menu store rejects route name exceeding maximum length', function ()
 test('admin menu update rejects route name exceeding maximum length', function () {
     $user = User::factory()->create();
 
-    $user->givePermissionTo('menus.view');
+    $user->givePermissionTo('menus.update');
 
     $menu = Menu::factory()->create([
         'type' => 'route',
@@ -2097,7 +2097,7 @@ test('admin menu update rejects route name exceeding maximum length', function (
 test('admin menu store rejects non integer parent id', function () {
     $user = User::factory()->create();
 
-    $user->givePermissionTo('menus.view');
+    $user->givePermissionTo('menus.create');
 
     $response = $this->actingAs($user)
         ->post(route('admin.menus.store'), [
@@ -2120,7 +2120,7 @@ test('admin menu store rejects non integer parent id', function () {
 test('admin menu update rejects non integer parent id', function () {
     $user = User::factory()->create();
 
-    $user->givePermissionTo('menus.view');
+    $user->givePermissionTo('menus.create');
 
     $menu = Menu::factory()->create([
         'type' => 'url',
@@ -2303,7 +2303,7 @@ test('authenticated user without menu permission cannot restore admin menu', fun
 test('admin menu update cannot change deleted at', function () {
     $user = User::factory()->create();
 
-    $user->givePermissionTo('menus.view');
+    $user->givePermissionTo('menus.create');
 
     $menu = Menu::factory()->create([
         'type' => 'url',
@@ -2332,7 +2332,7 @@ test('admin menu update cannot change deleted at', function () {
 test('admin menu store cannot set deleted at', function () {
     $user = User::factory()->create();
 
-    $user->givePermissionTo('menus.view');
+    $user->givePermissionTo('menus.create');
 
     $response = $this->actingAs($user)
         ->post(route('admin.menus.store'), [
@@ -2357,7 +2357,7 @@ test('admin menu store cannot set deleted at', function () {
 test('admin menu store cannot set uuid', function () {
     $user = User::factory()->create();
 
-    $user->givePermissionTo('menus.view');
+    $user->givePermissionTo('menus.create');
 
     $requestedUuid = '00000000-0000-0000-0000-000000000000';
 
@@ -2384,7 +2384,7 @@ test('admin menu store cannot set uuid', function () {
 test('admin menu store cannot set id', function () {
     $user = User::factory()->create();
 
-    $user->givePermissionTo('menus.view');
+    $user->givePermissionTo('menus.create');
 
     $requestedId = 999999;
 
@@ -2411,7 +2411,7 @@ test('admin menu store cannot set id', function () {
 test('admin menu store rejects non existent parent id', function () {
     $user = User::factory()->create();
 
-    $user->givePermissionTo('menus.view');
+    $user->givePermissionTo('menus.create');
 
     $response = $this->actingAs($user)
         ->post(route('admin.menus.store'), [
@@ -2435,7 +2435,7 @@ test('admin menu store rejects non existent parent id', function () {
 test('admin menu store rejects dangerous url scheme', function () {
     $user = User::factory()->create();
 
-    $user->givePermissionTo('menus.view');
+    $user->givePermissionTo('menus.create');
 
     $response = $this->actingAs($user)
         ->post(route('admin.menus.store'), [
@@ -2457,7 +2457,7 @@ test('admin menu store rejects dangerous url scheme', function () {
 test('admin menu update rejects dangerous url scheme', function () {
     $user = User::factory()->create();
 
-    $user->givePermissionTo('menus.view');
+    $user->givePermissionTo('menus.create');
 
     $menu = Menu::factory()->create([
         'type' => 'url',
@@ -2484,7 +2484,7 @@ test('admin menu update rejects dangerous url scheme', function () {
 test('admin menu store rejects non existent route name', function () {
     $user = User::factory()->create();
 
-    $user->givePermissionTo('menus.view');
+    $user->givePermissionTo('menus.create');
 
     $response = $this->actingAs($user)
         ->post(route('admin.menus.store'), [
@@ -2507,7 +2507,7 @@ test('admin menu store rejects non existent route name', function () {
 test('admin menu update rejects non existent route name', function () {
     $user = User::factory()->create();
 
-    $user->givePermissionTo('menus.view');
+    $user->givePermissionTo('menus.create');
 
     $menu = Menu::factory()->create([
         'type' => 'route',
@@ -2535,7 +2535,7 @@ test('admin menu update rejects non existent route name', function () {
 test('admin menu store rejects invalid route name format', function () {
     $user = User::factory()->create();
 
-    $user->givePermissionTo('menus.view');
+    $user->givePermissionTo('menus.create');
 
     $response = $this->actingAs($user)
         ->post(route('admin.menus.store'), [
@@ -2557,7 +2557,7 @@ test('admin menu store rejects invalid route name format', function () {
 test('admin menu update rejects invalid route name format', function () {
     $user = User::factory()->create();
 
-    $user->givePermissionTo('menus.view');
+    $user->givePermissionTo('menus.create');
 
     $menu = Menu::factory()->create([
         'type' => 'route',
@@ -2584,7 +2584,7 @@ test('admin menu update rejects invalid route name format', function () {
 test('admin menu store rejects invalid name format', function () {
     $user = User::factory()->create();
 
-    $user->givePermissionTo('menus.view');
+    $user->givePermissionTo('menus.create');
 
     $response = $this->actingAs($user)
         ->post(route('admin.menus.store'), [
@@ -2607,7 +2607,7 @@ test('admin menu store rejects invalid name format', function () {
 test('admin menu store casts sort order from http input to integer', function () {
     $user = User::factory()->create();
 
-    $user->givePermissionTo('menus.view');
+    $user->givePermissionTo('menus.create');
 
     $response = $this->actingAs($user)
         ->post(route('admin.menus.store'), [
@@ -2632,7 +2632,7 @@ test('admin menu store casts sort order from http input to integer', function ()
 test('admin menu store casts active status from http input to boolean', function () {
     $user = User::factory()->create();
 
-    $user->givePermissionTo('menus.view');
+    $user->givePermissionTo('menus.create');
 
     $response = $this->actingAs($user)
         ->post(route('admin.menus.store'), [
@@ -2657,7 +2657,7 @@ test('admin menu store casts active status from http input to boolean', function
 test('admin menu update rejects invalid name format', function () {
     $user = User::factory()->create();
 
-    $user->givePermissionTo('menus.view');
+    $user->givePermissionTo('menus.create');
 
     $menu = Menu::factory()->create([
         'name' => 'main-menu',
@@ -2685,7 +2685,7 @@ test('admin menu update rejects invalid name format', function () {
 test('admin menu update allows keeping the existing name', function () {
     $user = User::factory()->create();
 
-    $user->givePermissionTo('menus.view');
+    $user->givePermissionTo('menus.create');
 
     $menu = Menu::factory()->create([
         'name' => 'main-menu',
@@ -2715,7 +2715,7 @@ test('admin menu update allows keeping the existing name', function () {
 });
 test('admin menu create page contains menu store form', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo('menus.view');
+    $user->givePermissionTo('menus.create');
 
     $response = $this->actingAs($user)
         ->get(route('admin.menus.create'));
@@ -2732,7 +2732,7 @@ test('admin menu create page contains menu store form', function () {
 });
 test('admin menu create page contains save button', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo('menus.view');
+    $user->givePermissionTo('menus.create');
 
     $response = $this->actingAs($user)
         ->get(route('admin.menus.create'));
@@ -2746,7 +2746,7 @@ test('admin menu create page contains save button', function () {
 
 test('admin menu create page places save button inside menu store form', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo('menus.view');
+    $user->givePermissionTo('menus.create');
 
     $response = $this->actingAs($user)
         ->get(route('admin.menus.create'));
@@ -2764,7 +2764,7 @@ test('admin menu create page places save button inside menu store form', functio
 
 test('admin menu create page preserves old input after validation failure', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo('menus.view');
+    $user->givePermissionTo('menus.create');
 
     $response = $this->actingAs($user)
         ->withSession([
@@ -2782,7 +2782,7 @@ test('admin menu create page preserves old input after validation failure', func
 
 test('admin menu create page preserves old type selection after validation failure', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo('menus.view');
+    $user->givePermissionTo('menus.create');
 
     $response = $this->withSession([
         '_old_input' => [
@@ -2801,7 +2801,7 @@ test('admin menu create page preserves old type selection after validation failu
 
 test('admin menu create page preserves old url after validation failure', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo('menus.view');
+    $user->givePermissionTo('menus.create');
 
     $response = $this->withSession([
         '_old_input' => [
@@ -2821,7 +2821,7 @@ test('admin menu create page preserves old url after validation failure', functi
 
 test('admin menu create page preserves old route name after validation failure', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo('menus.view');
+    $user->givePermissionTo('menus.create');
 
     $response = $this->withSession([
         '_old_input' => [
@@ -2841,7 +2841,7 @@ test('admin menu create page preserves old route name after validation failure',
 
 test('admin menu create page preserves old target selection after validation failure', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo('menus.view');
+    $user->givePermissionTo('menus.create');
 
     $response = $this->withSession([
         '_old_input' => [
@@ -2860,7 +2860,7 @@ test('admin menu create page preserves old target selection after validation fai
 
 test('admin menu create page preserves old icon after validation failure', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo('menus.view');
+    $user->givePermissionTo('menus.create');
 
     $response = $this->withSession([
         '_old_input' => [
@@ -2879,7 +2879,7 @@ test('admin menu create page preserves old icon after validation failure', funct
 
 test('admin menu create page preserves old sort order after validation failure', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo('menus.view');
+    $user->givePermissionTo('menus.create');
 
     $response = $this->withSession([
         '_old_input' => [
@@ -2898,7 +2898,7 @@ test('admin menu create page preserves old sort order after validation failure',
 
 test('admin menu create page preserves old active status selection after validation failure', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo('menus.view');
+    $user->givePermissionTo('menus.create');
 
     $response = $this->withSession([
         '_old_input' => [
@@ -2917,7 +2917,7 @@ test('admin menu create page preserves old active status selection after validat
 
 test('admin menu create page preserves old parent selection after validation failure', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo('menus.view');
+    $user->givePermissionTo('menus.create');
 
     $parentMenu = Menu::factory()->create([
         'label' => 'Unique Parent Menu For Old Input Test',
@@ -2944,7 +2944,7 @@ test('admin menu create page preserves old parent selection after validation fai
 
 test('admin menu create page displays validation errors after failed submission', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo('menus.view');
+    $user->givePermissionTo('menus.create');
 
     $response = $this->actingAs($user)
         ->from(route('admin.menus.create'))
