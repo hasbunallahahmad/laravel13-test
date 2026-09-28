@@ -10,6 +10,55 @@ beforeEach(function () {
     $this->service = app(ImageProcessingService::class);
 });
 
+it('cleans up the original asset when webp processing fails', function () {
+    $file = UploadedFile::fake()->image(
+        'failed-webp.jpg',
+        1200,
+        800,
+    );
+
+    $disk = Storage::disk('public');
+
+    $diskMock = Mockery::mock();
+    $diskMock->shouldReceive('put')
+        ->once()
+        ->with(
+            'media/test/failed-webp.jpg',
+            Mockery::type('string'),
+        )
+        ->andReturnUsing(function (string $path, string $contents) use ($disk): bool {
+            return $disk->put($path, $contents);
+        });
+
+    $diskMock->shouldReceive('put')
+        ->once()
+        ->with(
+            'media/test/failed-webp.webp',
+            Mockery::type('string'),
+        )
+        ->andThrow(new RuntimeException('Simulated WebP encoding failure.'));
+
+    $diskMock->shouldReceive('delete')
+        ->once()
+        ->with(['media/test/failed-webp.jpg']);
+
+    Storage::shouldReceive('disk')
+        ->with('public')
+        ->andReturn($diskMock);
+
+    expect(fn () => $this->service->process(
+        file: $file,
+        directory: 'media/test',
+        filename: 'failed-webp',
+    ))
+        ->toThrow(
+            RuntimeException::class,
+            'Simulated WebP encoding failure.',
+        );
+
+    $disk->assertExists('media/test/failed-webp.jpg');
+});
+
 it('converts a jpeg image to webp while preserving the original', function () {
     $file = UploadedFile::fake()->image(
         'gedung-dinas.jpg',
