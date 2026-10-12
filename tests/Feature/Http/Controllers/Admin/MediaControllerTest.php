@@ -302,53 +302,54 @@ test('uploaded media path is controlled by the application', function () {
         ->not->toContain('/');
 });
 
-// test('upload rejects a file whose content does not match its image extension', function () {
-//     $user = User::factory()->create();
+test('upload rejects a file whose content does not match its image extension', function () {
+    $user = User::factory()->create();
 
-//     $user->givePermissionTo('media.create');
+    $user->givePermissionTo('media.create');
 
-//     $file = UploadedFile::fake()->createWithContent(
-//         'fake-image.jpg',
-//         'this is not a real jpeg image',
-//     );
+    $file = UploadedFile::fake()->createWithContent(
+        'fake-image.jpg',
+        'this is not a real jpeg image',
+    );
 
-//     $response = $this
-//         ->actingAs($user)
-//         ->post(
-//             route('admin.media.store'),
-//             [
-//                 'file' => $file,
-//             ],
-//         );
+    $response = $this
+        ->actingAs($user)
+        ->post(
+            route('admin.media.store'),
+            [
+                'file' => $file,
+            ],
+        );
 
-//     $response->assertSessionHasErrors('file');
+    $response->assertSessionHasErrors('file');
 
-//     expect(Media::query()->count())->toBe(0);
-// });
-// test('upload rejects a file with spoofed image mime type', function () {
-//     $user = User::factory()->create();
+    expect(Media::query()->count())->toBe(0);
+});
 
-//     $user->givePermissionTo('media.create');
+test('upload rejects a file with spoofed image mime type', function () {
+    $user = User::factory()->create();
 
-//     $file = UploadedFile::fake()->create(
-//         'fake-image.jpg',
-//         10,
-//         'image/jpeg',
-//     );
+    $user->givePermissionTo('media.create');
 
-//     $response = $this
-//         ->actingAs($user)
-//         ->post(
-//             route('admin.media.store'),
-//             [
-//                 'file' => $file,
-//             ],
-//         );
+    $file = UploadedFile::fake()->create(
+        'fake-image.jpg',
+        10,
+        'image/jpeg',
+    );
 
-//     $response->assertSessionHasErrors('file');
+    $response = $this
+        ->actingAs($user)
+        ->post(
+            route('admin.media.store'),
+            [
+                'file' => $file,
+            ],
+        );
 
-//     expect(Media::query()->count())->toBe(0);
-// });
+    $response->assertSessionHasErrors('file');
+
+    expect(Media::query()->count())->toBe(0);
+});
 
 /*
 |--------------------------------------------------------------------------
@@ -1591,4 +1592,74 @@ test('media library displays a link to media trash', function () {
             route('admin.media.trash'),
             false,
         );
+});
+
+test('upload rejects an invalid image file without creating media', function () {
+    $user = User::factory()->create();
+
+    $user->givePermissionTo('media.create');
+
+    $file = UploadedFile::fake()->create(
+        'fake-image.jpg',
+        10,
+        'image/jpeg',
+    );
+
+    $response = $this
+        ->actingAs($user)
+        ->post(
+            route('admin.media.store'),
+            [
+                'file' => $file,
+            ],
+        );
+
+    $response->assertSessionHasErrors('file');
+
+    expect(Media::query()->count())
+        ->toBe(0);
+
+    Storage::disk('public')->assertDirectoryEmpty(
+        'media/' . now()->format('Y/m'),
+    );
+});
+
+test('user with media create permission can upload a pdf file', function () {
+    $user = User::factory()->create();
+
+    $user->givePermissionTo('media.create');
+
+    $file = UploadedFile::fake()->create(
+        'dokumen.pdf',
+        100,
+        'application/pdf',
+    );
+
+    $response = $this
+        ->actingAs($user)
+        ->post(
+            route('admin.media.store'),
+            [
+                'file' => $file,
+            ],
+        );
+
+    $response
+        ->assertRedirect(route('admin.media.index'))
+        ->assertSessionHasNoErrors();
+
+    $media = Media::query()->first();
+
+    expect($media)
+        ->not->toBeNull()
+        ->and($media->original_name)
+        ->toBe('dokumen.pdf')
+        ->and($media->mime_type)
+        ->toBe('application/pdf')
+        ->and($media->extension)
+        ->toBe('pdf');
+
+    Storage::disk('public')->assertExists(
+        $media->path . '/' . $media->file_name,
+    );
 });

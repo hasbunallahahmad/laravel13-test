@@ -8,6 +8,7 @@ use App\Data\Media\MediaUploadData;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Validation\Rules\File;
+use App\Rules\Media\ValidImageContent;
 
 final class UploadMediaRequest extends FormRequest
 {
@@ -37,6 +38,7 @@ final class UploadMediaRequest extends FormRequest
                     'pdf',
                 ])
                     ->max('10mb'),
+                new ValidImageContent(),
             ],
 
             'alt_text' => [

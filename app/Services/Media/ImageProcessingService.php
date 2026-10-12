@@ -62,28 +62,30 @@ final class ImageProcessingService
 
         $this->validateDimensions($width, $height);
 
-        $storedPaths = [];
+        $extension = $this->extensionForMimeType($mimeType);
+
+        $createdPaths = [];
 
         try {
             $originalPath = $this->storeOriginal(
                 file: $file,
                 directory: $directory,
                 filename: $filename,
-                extension: $this->extensionForMimeType($mimeType),
+                extension: $extension,
             );
 
-            $storedPaths[] = $originalPath;
+            $createdPaths[] = $originalPath;
 
             $webpPath = null;
 
-            if ($this->shouldCreateWebp($mimeType)) {
+            if ($mimeType !== 'image/webp') {
                 $webpPath = $this->buildWebp(
                     image: $image,
                     directory: $directory,
                     filename: $filename,
                 );
 
-                $storedPaths[] = $webpPath;
+                $createdPaths[] = $webpPath;
             }
 
             $thumbnailPath = $this->buildThumbnail(
@@ -92,7 +94,7 @@ final class ImageProcessingService
                 filename: $filename,
             );
 
-            $storedPaths[] = $thumbnailPath;
+            $createdPaths[] = $thumbnailPath;
 
             return [
                 'original_path' => $originalPath,
@@ -102,8 +104,10 @@ final class ImageProcessingService
                 'height' => $height,
                 'mime_type' => $mimeType,
             ];
-        } catch (Throwable $exception) {
-            $this->cleanupPaths($storedPaths);
+        } catch (\Throwable $exception) {
+            if ($createdPaths !== []) {
+                Storage::disk('public')->delete($createdPaths);
+            }
 
             throw $exception;
         }

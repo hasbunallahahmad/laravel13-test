@@ -319,3 +319,102 @@ HTML;
         ->assertSee('width=&quot;289&quot;', false)
         ->assertSee('height=&quot;300&quot;', false);
 });
+
+test('create page exposes all public content types', function () {
+    $user = User::factory()->create();
+
+    $user->givePermissionTo('content.create');
+
+    $response = $this
+        ->actingAs($user)
+        ->get(route('admin.contents.create'));
+
+    $response
+        ->assertOk()
+        ->assertSee('page')
+        ->assertSee('news')
+        ->assertSee('announcement')
+        ->assertSee('event')
+        ->assertSee('article')
+        ->assertSee('service')
+        ->assertSee('document')
+        ->assertSee('publication')
+        ->assertSee('faq');
+});
+
+test('content creation accepts every public content type', function (ContentType $type) {
+    $user = User::factory()->create();
+
+    $user->givePermissionTo('content.create');
+
+    $response = $this
+        ->actingAs($user)
+        ->post(
+            route('admin.contents.store'),
+            [
+                'type' => $type->value,
+                'title' => 'Test ' . $type->value,
+                'slug' => 'test-' . $type->value,
+                'excerpt' => 'Test excerpt',
+                'body' => '<p>Test body</p>',
+                'status' => 'draft',
+            ],
+        );
+
+    $response
+        ->assertRedirect()
+        ->assertSessionHasNoErrors();
+
+    expect(Content::query()
+        ->where('type', $type->value)
+        ->exists())
+        ->toBeTrue();
+})->with([
+    ContentType::PAGE,
+    ContentType::NEWS,
+    ContentType::ANNOUNCEMENT,
+    ContentType::EVENT,
+    ContentType::ARTICLE,
+    ContentType::SERVICE,
+    ContentType::DOCUMENT,
+    ContentType::PUBLICATION,
+    ContentType::FAQ,
+]);
+
+test('published content with a reached published_at can be created', function () {
+    $user = User::factory()->create();
+
+    $user->givePermissionTo('content.create');
+
+    $response = $this
+        ->actingAs($user)
+        ->post(
+            route('admin.contents.store'),
+            [
+                'type' => ContentType::NEWS->value,
+                'title' => 'Berita Publik',
+                'slug' => 'berita-publik',
+                'excerpt' => 'Berita yang sudah dipublikasikan.',
+                'body' => '<p>Isi berita.</p>',
+                'status' => 'published',
+                'published_at' => now()->subMinute()->format('Y-m-d H:i:s'),
+            ],
+        );
+
+    $response
+        ->assertRedirect()
+        ->assertSessionHasNoErrors();
+
+    $content = Content::query()
+        ->where('slug', 'berita-publik')
+        ->first();
+
+    expect($content)
+        ->not->toBeNull()
+        ->and($content->status)
+        ->toBe(ContentStatus::PUBLISHED)
+        ->and($content->published_at)
+        ->not->toBeNull()
+        ->and($content->published_at->isPast())
+        ->toBeTrue();
+});

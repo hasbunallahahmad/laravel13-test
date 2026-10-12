@@ -40,7 +40,7 @@ it('processes an uploaded image and stores its derivatives', function () {
         ]);
 
     $directory = $media->path;
-    $original = $directory.'/'.$media->file_name;
+    $original = $directory . '/' . $media->file_name;
 
     Storage::disk('public')
         ->assertExists($original);
@@ -79,7 +79,7 @@ it('does not create a duplicate webp variant for a webp upload', function () {
 
     Storage::disk('public')
         ->assertExists(
-            $media->path.'/'.$media->file_name,
+            $media->path . '/' . $media->file_name,
         );
 
     expect($metadata)
@@ -115,7 +115,7 @@ it('does not process pdf files through image processing', function () {
 
     Storage::disk('public')
         ->assertExists(
-            $media->path.'/'.$media->file_name,
+            $media->path . '/' . $media->file_name,
         );
 });
 
@@ -132,7 +132,7 @@ it('deletes image derivatives when media is permanently deleted', function () {
         ),
     );
 
-    $originalPath = $media->path.'/'.$media->file_name;
+    $originalPath = $media->path . '/' . $media->file_name;
     $webpPath = $media->metadata['variants']['webp'];
     $thumbnailPath = $media->metadata['variants']['thumbnail'];
 
@@ -163,7 +163,7 @@ test('it cleans up all image files when media database creation fails', function
         );
     });
 
-    expect(fn () => app(MediaService::class)->upload(
+    expect(fn() => app(MediaService::class)->upload(
         new MediaUploadData(
             file: $file,
         ),
@@ -192,7 +192,7 @@ test('it rethrows the original exception after cleaning up processed image files
         );
     });
 
-    expect(fn () => app(MediaService::class)->upload(
+    expect(fn() => app(MediaService::class)->upload(
         new MediaUploadData(
             file: $file,
         ),
@@ -200,6 +200,85 @@ test('it rethrows the original exception after cleaning up processed image files
         RuntimeException::class,
         'Original image persistence error.',
     );
+
+    expect(Storage::disk('public')->allFiles('media'))
+        ->toBe([]);
+});
+
+it('processes a png upload and stores its original and derivatives', function () {
+    $file = UploadedFile::fake()->image(
+        'visimisi.png',
+        1200,
+        800,
+    );
+
+    $media = app(MediaService::class)->upload(
+        new MediaUploadData(
+            file: $file,
+            altText: 'Visi Misi',
+            caption: 'Visi Misi Dinas Arpus',
+        ),
+    );
+
+    expect($media)
+        ->toBeInstanceOf(Media::class)
+        ->and($media->mime_type)
+        ->toBe('image/png')
+        ->and($media->extension)
+        ->toBe('png')
+        ->and($media->metadata)
+        ->toMatchArray([
+            'width' => 1200,
+            'height' => 800,
+        ]);
+
+    $originalPath = $media->path . '/' . $media->file_name;
+
+    Storage::disk('public')
+        ->assertExists($originalPath);
+
+    expect($media->metadata)
+        ->toHaveKey('variants')
+        ->and($media->metadata['variants'])
+        ->toHaveKeys([
+            'webp',
+            'thumbnail',
+        ]);
+
+    Storage::disk('public')
+        ->assertExists($media->metadata['variants']['webp']);
+
+    Storage::disk('public')
+        ->assertExists($media->metadata['variants']['thumbnail']);
+});
+
+it('cleans up all processed assets when media database creation fails', function () {
+    $file = UploadedFile::fake()->image(
+        'database-failure.jpg',
+        1200,
+        800,
+    );
+
+    Media::creating(function (): void {
+        throw new RuntimeException(
+            'Simulated media persistence failure.',
+        );
+    });
+
+    expect(fn() => app(MediaService::class)->upload(
+        new MediaUploadData(
+            file: $file,
+            altText: 'Database failure',
+            caption: 'Testing cleanup',
+        ),
+    ))
+        ->toThrow(
+            RuntimeException::class,
+            'Simulated media persistence failure.',
+        );
+
+    expect(Media::query()->count())
+        ->toBe(0);
 
     expect(Storage::disk('public')->allFiles('media'))
         ->toBe([]);

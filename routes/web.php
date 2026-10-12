@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\MediaPickerController;
 use App\Http\Controllers\Admin\MenuController;
 use App\Http\Controllers\Admin\Settings\SettingController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Public\ContentController as PublicContentController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -19,6 +20,13 @@ Route::get('/', function () {
     return view('welcome');
 })->name('home');
 
+
+Route::get('/berita/{slug}', [PublicContentController::class, 'news'])
+    ->name('public.news.show');
+Route::get('/agenda/{slug}', [PublicContentController::class, 'event'])
+    ->name('public.event.show');
+Route::get('/pengumuman/{slug}', [PublicContentController::class, 'announcement'])
+    ->name('public.announcement.show');
 /*
 |--------------------------------------------------------------------------
 | User Dashboard

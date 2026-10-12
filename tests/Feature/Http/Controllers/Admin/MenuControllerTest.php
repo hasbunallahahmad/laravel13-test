@@ -2120,7 +2120,7 @@ test('admin menu store rejects non integer parent id', function () {
 test('admin menu update rejects non integer parent id', function () {
     $user = User::factory()->create();
 
-    $user->givePermissionTo('menus.create');
+    $user->givePermissionTo('menus.update');
 
     $menu = Menu::factory()->create([
         'type' => 'url',
@@ -2303,7 +2303,7 @@ test('authenticated user without menu permission cannot restore admin menu', fun
 test('admin menu update cannot change deleted at', function () {
     $user = User::factory()->create();
 
-    $user->givePermissionTo('menus.create');
+    $user->givePermissionTo('menus.update');
 
     $menu = Menu::factory()->create([
         'type' => 'url',
@@ -2457,7 +2457,7 @@ test('admin menu store rejects dangerous url scheme', function () {
 test('admin menu update rejects dangerous url scheme', function () {
     $user = User::factory()->create();
 
-    $user->givePermissionTo('menus.create');
+    $user->givePermissionTo('menus.update');
 
     $menu = Menu::factory()->create([
         'type' => 'url',
@@ -2507,7 +2507,7 @@ test('admin menu store rejects non existent route name', function () {
 test('admin menu update rejects non existent route name', function () {
     $user = User::factory()->create();
 
-    $user->givePermissionTo('menus.create');
+    $user->givePermissionTo('menus.update');
 
     $menu = Menu::factory()->create([
         'type' => 'route',
@@ -2557,7 +2557,7 @@ test('admin menu store rejects invalid route name format', function () {
 test('admin menu update rejects invalid route name format', function () {
     $user = User::factory()->create();
 
-    $user->givePermissionTo('menus.create');
+    $user->givePermissionTo('menus.update');
 
     $menu = Menu::factory()->create([
         'type' => 'route',
@@ -2657,7 +2657,7 @@ test('admin menu store casts active status from http input to boolean', function
 test('admin menu update rejects invalid name format', function () {
     $user = User::factory()->create();
 
-    $user->givePermissionTo('menus.create');
+    $user->givePermissionTo('menus.update');
 
     $menu = Menu::factory()->create([
         'name' => 'main-menu',
@@ -2685,7 +2685,7 @@ test('admin menu update rejects invalid name format', function () {
 test('admin menu update allows keeping the existing name', function () {
     $user = User::factory()->create();
 
-    $user->givePermissionTo('menus.create');
+    $user->givePermissionTo('menus.update');
 
     $menu = Menu::factory()->create([
         'name' => 'main-menu',
@@ -2722,7 +2722,7 @@ test('admin menu create page contains menu store form', function () {
 
     $response->assertOk()
         ->assertSee(
-            '<form action="' . route('admin.menus.store') . '" method="POST">',
+            '<form action="' . route('admin.menus.store') . '" method="POST" data-menu-form>',
             false,
         )
         ->assertSee(
@@ -2739,6 +2739,10 @@ test('admin menu create page contains save button', function () {
 
     $response->assertOk()
         ->assertSee(
+            '<form action="' . route('admin.menus.store') . '" method="POST" data-menu-form>',
+            false,
+        )
+        ->assertSee(
             '<button type="submit">Simpan</button>',
             false,
         );
@@ -2753,7 +2757,7 @@ test('admin menu create page places save button inside menu store form', functio
 
     $response->assertOk()
         ->assertSee(
-            '<form action="' . route('admin.menus.store') . '" method="POST">',
+            '<form action="' . route('admin.menus.store') . '" method="POST" data-menu-form>',
             false,
         )
         ->assertSee(
@@ -2993,7 +2997,9 @@ test('admin menu edit page is accessible', function () {
 });
 
 it('admin menu edit page contains menu update form', function () {
-    $user = actingAsMenuViewer();
+    $user = User::factory()->create();
+
+    $user->givePermissionTo('menus.update');
     $menu = Menu::factory()->create([
         'name' => 'main-menu',
         'label' => 'Menu Utama',
@@ -3022,7 +3028,9 @@ it('admin menu edit page contains menu update form', function () {
 });
 
 it('admin menu edit page contains all menu form fields', function () {
-    $user = actingAsMenuViewer();
+    $user = User::factory()->create();
+
+    $user->givePermissionTo('menus.update');
     $menu = Menu::factory()->create([
         'name' => 'main-menu',
         'label' => 'Menu Utama',
@@ -3053,7 +3061,9 @@ it('admin menu edit page contains all menu form fields', function () {
 });
 
 it('admin menu edit page displays existing menu values', function () {
-    $user = actingAsMenuViewer();
+    $user = User::factory()->create();
+
+    $user->givePermissionTo('menus.update');
     $menu = Menu::factory()->create([
         'name' => 'main-menu',
         'label' => 'Menu Utama',
@@ -3080,7 +3090,9 @@ it('admin menu edit page displays existing menu values', function () {
 });
 
 it('admin menu edit page selects the existing menu type', function () {
-    $user = actingAsMenuViewer();
+    $user = User::factory()->create();
+
+    $user->givePermissionTo('menus.update');
     $menu = Menu::factory()->create([
         'name' => 'main-menu',
         'label' => 'Menu Utama',
@@ -3104,7 +3116,9 @@ it('admin menu edit page selects the existing menu type', function () {
 });
 
 it('admin menu edit page selects the existing target', function () {
-    $user = actingAsMenuViewer();
+    $user = User::factory()->create();
+
+    $user->givePermissionTo('menus.update');
     $menu = Menu::factory()->create([
         'name' => 'main-menu',
         'label' => 'Menu Utama',
@@ -3128,7 +3142,9 @@ it('admin menu edit page selects the existing target', function () {
 });
 
 it('admin menu edit page displays the existing route name', function () {
-    $user = actingAsMenuViewer();
+    $user = User::factory()->create();
+
+    $user->givePermissionTo('menus.update');
     $menu = Menu::factory()->create([
         'name' => 'dashboard-menu',
         'label' => 'Dashboard',
@@ -3152,7 +3168,9 @@ it('admin menu edit page displays the existing route name', function () {
 });
 
 it('admin menu edit page displays the existing parent menu', function () {
-    $user = actingAsMenuViewer();
+    $user = User::factory()->create();
+
+    $user->givePermissionTo('menus.update');
     $parent = Menu::factory()->create([
         'name' => 'parent-menu',
         'label' => 'Parent Menu',
@@ -3182,7 +3200,9 @@ it('admin menu edit page displays the existing parent menu', function () {
 });
 
 it('admin menu edit page provides available parent menus', function () {
-    $user = actingAsMenuViewer();
+    $user = User::factory()->create();
+
+    $user->givePermissionTo('menus.update');
     $parent = Menu::factory()->create([
         'name' => 'parent-menu',
         'label' => 'Parent Menu',

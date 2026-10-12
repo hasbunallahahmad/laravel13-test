@@ -105,7 +105,13 @@ class Content extends Model
      */
     public function scopePublished(Builder $query): Builder
     {
-        return $query->where('status', ContentStatus::PUBLISHED);
+        return $query
+            ->where('status', ContentStatus::PUBLISHED)
+            ->where(function (Builder $query): void {
+                $query
+                    ->whereNull('published_at')
+                    ->orWhere('published_at', '<=', now());
+            });
     }
 
     public function scopeDrafts(Builder $query): Builder

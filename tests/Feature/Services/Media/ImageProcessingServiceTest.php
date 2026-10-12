@@ -3,6 +3,7 @@
 use App\Services\Media\ImageProcessingService;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use Mockery;
 
 beforeEach(function () {
     Storage::fake('public');
@@ -193,7 +194,7 @@ it('rejects an image wider than the maximum source width', function () {
         4000,
     );
 
-    expect(fn () => $this->service->process(
+    expect(fn() => $this->service->process(
         file: $file,
         directory: 'media/test',
         filename: 'too-wide',
@@ -208,7 +209,7 @@ it('rejects an image taller than the maximum source height', function () {
         4001,
     );
 
-    expect(fn () => $this->service->process(
+    expect(fn() => $this->service->process(
         file: $file,
         directory: 'media/test',
         filename: 'too-tall',
@@ -356,7 +357,7 @@ it('rejects unsupported image mime types', function () {
         'application/x-httpd-php',
     );
 
-    expect(fn () => $this->service->process(
+    expect(fn() => $this->service->process(
         file: $file,
         directory: 'media/test',
         filename: 'malicious',
@@ -395,7 +396,7 @@ it('processes uploaded images into original, webp, and thumbnail assets', functi
 
     Storage::disk('public')
         ->assertExists(
-            $media->path.'/'.$media->file_name,
+            $media->path . '/' . $media->file_name,
         );
 
     expect($media->metadata)
@@ -414,5 +415,172 @@ it('processes uploaded images into original, webp, and thumbnail assets', functi
     Storage::disk('public')
         ->assertExists(
             $media->metadata['variants']['thumbnail'],
+        );
+});
+
+it('cleans up partially created image assets when processing fails', function () {
+    $file = UploadedFile::fake()->image(
+        'gedung-dinas.jpg',
+        1200,
+        800,
+    );
+
+    $disk = Mockery::mock();
+
+    $disk
+        ->shouldReceive('put')
+        ->once()
+        ->with(
+            'media/test/gedung-dinas.jpg',
+            Mockery::type('string'),
+        )
+        ->andReturnTrue();
+
+    $disk
+        ->shouldReceive('put')
+        ->once()
+        ->with(
+            'media/test/gedung-dinas.webp',
+            Mockery::type('string'),
+        )
+        ->andThrow(
+            new RuntimeException(
+                'Simulated WebP processing failure.',
+            ),
+        );
+
+    $disk
+        ->shouldReceive('delete')
+        ->once()
+        ->with([
+            'media/test/gedung-dinas.jpg',
+        ])
+        ->andReturnTrue();
+
+    Storage::shouldReceive('disk')
+        ->atLeast()
+        ->once()
+        ->with('public')
+        ->andReturn($disk);
+
+    expect(fn() => $this->service->process(
+        file: $file,
+        directory: 'media/test',
+        filename: 'gedung-dinas',
+    ))
+        ->toThrow(
+            RuntimeException::class,
+            'Simulated WebP processing failure.',
+        );
+});
+
+it('cleans up the original asset when webp processing fails', function () {
+    $file = UploadedFile::fake()->image(
+        'failed-webp.jpg',
+        1200,
+        800,
+    );
+
+    $disk = Mockery::mock();
+
+    $disk->shouldReceive('put')
+        ->once()
+        ->with(
+            'media/test/failed-webp.jpg',
+            Mockery::type('string'),
+        )
+        ->andReturn(true);
+
+    $disk->shouldReceive('put')
+        ->once()
+        ->with(
+            'media/test/failed-webp.webp',
+            Mockery::type('string'),
+        )
+        ->andThrow(
+            new RuntimeException(
+                'Simulated WebP encoding failure.',
+            ),
+        );
+
+    $disk->shouldReceive('delete')
+        ->once()
+        ->with([
+            'media/test/failed-webp.jpg',
+        ])
+        ->andReturn(true);
+
+    Storage::shouldReceive('disk')
+        ->with('public')
+        ->andReturn($disk);
+
+    expect(fn() => $this->service->process(
+        file: $file,
+        directory: 'media/test',
+        filename: 'failed-webp',
+    ))
+        ->toThrow(
+            RuntimeException::class,
+            'Simulated WebP encoding failure.',
+        );
+});
+
+it('cleans up original and webp assets when thumbnail processing fails', function () {
+    $file = UploadedFile::fake()->image(
+        'failed-thumbnail.jpg',
+        1200,
+        800,
+    );
+
+    $disk = Mockery::mock();
+
+    $disk->shouldReceive('put')
+        ->once()
+        ->with(
+            'media/test/failed-thumbnail.jpg',
+            Mockery::type('string'),
+        )
+        ->andReturn(true);
+
+    $disk->shouldReceive('put')
+        ->once()
+        ->with(
+            'media/test/failed-thumbnail.webp',
+            Mockery::type('string'),
+        )
+        ->andReturn(true);
+
+    $disk->shouldReceive('put')
+        ->once()
+        ->with(
+            'media/test/failed-thumbnail-thumb.webp',
+            Mockery::type('string'),
+        )
+        ->andThrow(
+            new RuntimeException(
+                'Simulated thumbnail storage failure.',
+            ),
+        );
+
+    $disk->shouldReceive('delete')
+        ->once()
+        ->with([
+            'media/test/failed-thumbnail.jpg',
+            'media/test/failed-thumbnail.webp',
+        ])
+        ->andReturn(true);
+
+    Storage::shouldReceive('disk')
+        ->with('public')
+        ->andReturn($disk);
+
+    expect(fn() => $this->service->process(
+        file: $file,
+        directory: 'media/test',
+        filename: 'failed-thumbnail',
+    ))
+        ->toThrow(
+            RuntimeException::class,
+            'Simulated thumbnail storage failure.',
         );
 });
