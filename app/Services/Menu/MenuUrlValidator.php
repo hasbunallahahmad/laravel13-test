@@ -56,7 +56,7 @@ final class MenuUrlValidator
         for ($i = 0; $i < 10; $i++) {
             if (
                 str_starts_with($decodedPath, '//')
-                || preg_match('/[\\x00-\\x1F\\x7F\\\\\\\\]/', $decodedPath)
+                || preg_match('/[\x00-\x1F\x7F\\\\]/', $decodedPath)
             ) {
                 return false;
             }
@@ -74,7 +74,7 @@ final class MenuUrlValidator
         if (
             ! $fullyDecoded
             || str_starts_with($decodedPath, '//')
-            || preg_match('/[\\x00-\\x1F\\x7F\\\\\\\\]/', $decodedPath)
+            || preg_match('/[\x00-\x1F\x7F\\\\]/', $decodedPath)
         ) {
             return false;
         }
