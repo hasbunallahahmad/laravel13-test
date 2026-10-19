@@ -77,6 +77,14 @@ final class MenuUrlValidator
             return false;
         }
 
+        // Reject dot segments so browser/server path normalization cannot
+        // turn an apparently public path into a protected route.
+        foreach (explode('/', $path) as $segment) {
+            if ($segment === '.' || $segment === '..') {
+                return false;
+            }
+        }
+
         // These route families require authentication and must not be linked
         // from public navigation, even if entered as a local URL.
         return ! preg_match(
