@@ -14,6 +14,10 @@ use Illuminate\Support\Facades\Route;
 
 final class HomeController extends Controller
 {
+    public function __construct(
+        private readonly MenuUrlValidator $menuUrlValidator,
+    ) {}
+
     public function __invoke(): View
     {
         $news = Content::query()
@@ -90,77 +94,8 @@ final class HomeController extends Controller
 
         $url = trim($menu->url);
 
-        // Tolak URL kosong, karakter kontrol, dan backslash.
-        if (
-            $url === ''
-            || preg_match('/[\x00-\x1F\x7F\\\\]/', $url)
-        ) {
-            return null;
-        }
-
-        // Validasi path lokal, termasuk URL encoding berlapis.
-        if (str_starts_with($url, '/')) {
-            $decodedPath = $url;
-
-            // Batasi decoding untuk menghindari encoding berlapis tanpa batas.
-            for ($i = 0; $i < 5; $i++) {
-                if (
-                    str_starts_with($decodedPath, '//')
-                    || preg_match(
-                        '/[\x00-\x1F\x7F\\\\]/',
-                        $decodedPath,
-                    )
-                ) {
-                    return null;
-                }
-
-                $nextDecodedPath = rawurldecode($decodedPath);
-
-                if ($nextDecodedPath === $decodedPath) {
-                    break;
-                }
-
-                $decodedPath = $nextDecodedPath;
-            }
-
-            // Periksa kembali hasil decoding terakhir.
-            if (
-                str_starts_with($decodedPath, '//')
-                || preg_match(
-                    '/[\x00-\x1F\x7F\\\\]/',
-                    $decodedPath,
-                )
-            ) {
-                return null;
-            }
-
-            // Pertahankan URL aslinya jika path lokal lolos validasi.
-            return $url;
-        }
-
-        // Untuk URL absolut, hanya HTTP dan HTTPS yang diperbolehkan.
-        if (! filter_var($url, FILTER_VALIDATE_URL)) {
-            return null;
-        }
-
-        $scheme = strtolower(
-            (string) parse_url($url, PHP_URL_SCHEME),
-        );
-
-        $host = parse_url($url, PHP_URL_HOST);
-        $user = parse_url($url, PHP_URL_USER);
-        $pass = parse_url($url, PHP_URL_PASS);
-
-        if (
-            ! in_array($scheme, ['http', 'https'], true)
-            || ! is_string($host)
-            || $host === ''
-            || $user !== null
-            || $pass !== null
-        ) {
-            return null;
-        }
-
-        return $url;
+        return $this->menuUrlValidator->isValid($url)
+            ? $url
+            : null;
     }
 }
