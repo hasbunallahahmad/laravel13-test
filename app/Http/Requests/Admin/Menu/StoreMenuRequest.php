@@ -61,7 +61,7 @@ final class StoreMenuRequest extends FormRequest
                             || ! app(MenuUrlValidator::class)->isValid($value)
                         )
                     ) {
-                        $fail('The menu URL must be a safe local path or an HTTP(S) URL.');
+                        $fail('The menu URL is invalid or not allowed for public navigation.');
                     }
                 },
                 'required_if:type,url',
