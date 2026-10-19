@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Requests\Admin\Menu;
 
 use App\Data\Menu\MenuData;
+use App\Services\Menu\MenuUrlValidator;
 use App\Models\Menu;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Route;
@@ -53,7 +54,21 @@ final class UpdateMenuRequest extends FormRequest
                 'nullable',
                 'string',
                 'max:2048',
-                'url:http,https',
+                function (
+                    string $attribute,
+                    mixed $value,
+                    \Closure $fail,
+                ): void {
+                    if (
+                        $value !== null
+                        && (
+                            ! is_string($value)
+                            || ! app(MenuUrlValidator::class)->isValid($value)
+                        )
+                    ) {
+                        $fail('The menu URL must be a safe local path or an HTTP(S) URL.');
+                    }
+                },
                 'required_if:type,url',
                 'prohibited_if:type,route',
             ],
