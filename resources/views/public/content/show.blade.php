@@ -18,7 +18,7 @@
             @endif
 
             <div>
-                {!! $content->body !!}
+                {!! $sanitizedBody !!}
             </div>
         </article>
     </main>

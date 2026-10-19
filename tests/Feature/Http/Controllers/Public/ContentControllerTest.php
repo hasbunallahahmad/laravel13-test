@@ -158,6 +158,43 @@ test('public agenda page displays published event by slug', function () {
         ->assertSee('Informasi agenda kegiatan.');
 });
 
+test('public content sanitizes stored HTML before rendering it', function () {
+    $maliciousBody = '<script>alert(\'xss-script\')</script>'
+        . '<p>Konten aman.</p>'
+        . '<img src="x" onerror="alert(\'xss-image\')">'
+        . '<a href="javascript:alert(\'xss-link\')">tautan</a>';
+
+    $content = Content::factory()->create([
+        'type' => ContentType::NEWS,
+        'title' => 'Berita Uji Sanitasi',
+        'slug' => 'berita-uji-sanitasi',
+        'body' => $maliciousBody,
+        'status' => ContentStatus::PUBLISHED,
+        'published_at' => now()->subMinute(),
+    ]);
+
+    $sanitizedBody = app(
+        \App\Services\Content\ContentHtmlSanitizer::class,
+    )->sanitize($maliciousBody);
+
+    expect($sanitizedBody)
+        ->toContain('<p>Konten aman.</p>')
+        ->not->toContain('<script')
+        ->not->toContain('onerror')
+        ->not->toContain('javascript:');
+
+    $response = $this->get('/berita/' . $content->slug);
+
+    $response
+        ->assertOk()
+        ->assertSee('<p>Konten aman.</p>', false)
+        ->assertSee('Berita Uji Sanitasi')
+        ->assertDontSee('onerror', false)
+        ->assertDontSee('javascript:', false);
+
+    expect($content->fresh()->body)->toBe($maliciousBody);
+});
+
 test('public article page displays published article by slug', function () {
     $content = Content::factory()->create([
         'type' => ContentType::ARTICLE,
