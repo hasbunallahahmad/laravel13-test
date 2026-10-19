@@ -163,7 +163,8 @@ test('public article page displays published article by slug', function () {
         'type' => ContentType::ARTICLE,
         'title' => 'Artikel Literasi',
         'slug' => 'artikel-literasi',
-        'body' => '<p>Pentingnya budaya literasi.</p>',
+        'excerpt' => 'Pentingnya budaya literasi.',
+        'body' => '<p>Isi artikel literasi.</p>',
         'status' => ContentStatus::PUBLISHED,
         'published_at' => now()->subMinute(),
     ]);

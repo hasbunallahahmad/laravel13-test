@@ -47,7 +47,7 @@ it('cleans up the original asset when webp processing fails', function () {
         ->with('public')
         ->andReturn($diskMock);
 
-    expect(fn () => $this->service->process(
+    expect(fn() => $this->service->process(
         file: $file,
         directory: 'media/test',
         filename: 'failed-webp',
@@ -523,7 +523,7 @@ it('cleans up partially created image assets when processing fails', function ()
         );
 });
 
-it('cleans up the original asset when webp processing fails', function () {
+it('deletes the original asset after webp processing fails', function () {
     $file = UploadedFile::fake()->image(
         'failed-webp.jpg',
         1200,

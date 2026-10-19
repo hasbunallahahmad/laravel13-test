@@ -89,7 +89,7 @@ it('processes a png upload and stores its original and derivatives', function ()
             'height' => 800,
         ]);
 
-    $originalPath = $media->path.'/'.$media->file_name;
+    $originalPath = $media->path . '/' . $media->file_name;
 
     Storage::disk('public')
         ->assertExists($originalPath);
@@ -250,53 +250,6 @@ test('it rethrows the original exception after cleaning up processed image files
 
     expect(Storage::disk('public')->allFiles('media'))
         ->toBe([]);
-});
-
-it('processes a png upload and stores its original and derivatives', function () {
-    $file = UploadedFile::fake()->image(
-        'visimisi.png',
-        1200,
-        800,
-    );
-
-    $media = app(MediaService::class)->upload(
-        new MediaUploadData(
-            file: $file,
-            altText: 'Visi Misi',
-            caption: 'Visi Misi Dinas Arpus',
-        ),
-    );
-
-    expect($media)
-        ->toBeInstanceOf(Media::class)
-        ->and($media->mime_type)
-        ->toBe('image/png')
-        ->and($media->extension)
-        ->toBe('png')
-        ->and($media->metadata)
-        ->toMatchArray([
-            'width' => 1200,
-            'height' => 800,
-        ]);
-
-    $originalPath = $media->path . '/' . $media->file_name;
-
-    Storage::disk('public')
-        ->assertExists($originalPath);
-
-    expect($media->metadata)
-        ->toHaveKey('variants')
-        ->and($media->metadata['variants'])
-        ->toHaveKeys([
-            'webp',
-            'thumbnail',
-        ]);
-
-    Storage::disk('public')
-        ->assertExists($media->metadata['variants']['webp']);
-
-    Storage::disk('public')
-        ->assertExists($media->metadata['variants']['thumbnail']);
 });
 
 it('cleans up all processed assets when media database creation fails', function () {

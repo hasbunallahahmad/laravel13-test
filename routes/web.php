@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Public\HomeController;
 use App\Http\Controllers\Admin\ContentController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\MediaController;
@@ -16,9 +17,10 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 */
 
-Route::get('/', function () {
-    return view('welcome');
-})->name('home');
+// Route::get('/', function () {
+//     return view('welcome');
+// })->name('home');
+Route::get('/', HomeController::class)->name('home');
 
 
 Route::get('/berita/{slug}', [PublicContentController::class, 'news'])
@@ -27,6 +29,8 @@ Route::get('/agenda/{slug}', [PublicContentController::class, 'event'])
     ->name('public.event.show');
 Route::get('/pengumuman/{slug}', [PublicContentController::class, 'announcement'])
     ->name('public.announcement.show');
+Route::get('/artikel/{slug}', [PublicContentController::class, 'article'])
+    ->name('public.article.show');
 /*
 |--------------------------------------------------------------------------
 | User Dashboard

@@ -51,4 +51,14 @@ final class ContentController extends Controller
 
         return view('public.content.show', compact('content'));
     }
+
+    public function article(string $slug): View
+    {
+        $content = $this->findPublishedContent(
+            ContentType::ARTICLE,
+            $slug,
+        );
+
+        return view('public.content.show', compact('content'));
+    }
 }

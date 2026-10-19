@@ -418,3 +418,47 @@ test('published content with a reached published_at can be created', function ()
         ->and($content->published_at->isPast())
         ->toBeTrue();
 });
+
+
+test('content update sanitizes dangerous html before saving', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo('content.update');
+
+    $content = Content::factory()->create([
+        'title' => 'Konten Lama',
+        'slug' => 'konten-lama',
+        'body' => '<p>Konten awal.</p>',
+    ]);
+
+    $payload = [
+        'type' => ContentType::ARTICLE->value,
+        'title' => 'Konten Diperbarui',
+        'slug' => 'konten-diperbarui',
+        'excerpt' => 'Ringkasan konten.',
+        'body' => <<<'HTML'
+<p>Konten yang aman.</p>
+<script>alert('xss')</script>
+<img src="https://example.com/image.jpg" alt="Foto" onerror="alert('xss')">
+HTML,
+        'status' => ContentStatus::DRAFT->value,
+        'published_at' => null,
+        'author_uuid' => null,
+        'metadata' => [],
+    ];
+
+    $response = $this
+        ->actingAs($user)
+        ->put(route('admin.contents.update', $content), $payload);
+
+    $response
+        ->assertRedirect(route('admin.contents.index'))
+        ->assertSessionHasNoErrors();
+
+    $savedBody = $content->fresh()->body;
+
+    expect($savedBody)
+        ->toContain('Konten yang aman.')
+        ->not->toContain('<script')
+        ->not->toContain('onerror')
+        ->not->toContain("alert('xss')");
+});

@@ -7,6 +7,7 @@ namespace App\Http\Requests\Admin\Content;
 use App\Enums\ContentStatus;
 use App\Enums\ContentType;
 use App\Models\Content;
+use App\Services\Content\ContentHtmlSanitizer;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -83,5 +84,16 @@ class UpdateContentRequest extends FormRequest
                 'array',
             ],
         ];
+    }
+
+    protected function prepareForValidation(): void
+    {
+        $body = (string) $this->input('body', '');
+
+        $sanitizer = app(ContentHtmlSanitizer::class);
+
+        $this->merge([
+            'body' => $sanitizer->sanitize($body),
+        ]);
     }
 }

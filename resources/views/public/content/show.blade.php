@@ -13,6 +13,10 @@
         <article>
             <h1>{{ $content->title }}</h1>
 
+            @if ($content->excerpt)
+                <p>{{ $content->excerpt }}</p>
+            @endif
+
             <div>
                 {!! $content->body !!}
             </div>
