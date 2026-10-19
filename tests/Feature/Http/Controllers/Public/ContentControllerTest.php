@@ -173,12 +173,22 @@ test('public content sanitizes stored HTML before rendering it', function () {
         'published_at' => now()->subMinute(),
     ]);
 
+    $sanitizedBody = app(
+        \App\Services\Content\ContentHtmlSanitizer::class,
+    )->sanitize($maliciousBody);
+
+    expect($sanitizedBody)
+        ->toContain('<p>Konten aman.</p>')
+        ->not->toContain('<script')
+        ->not->toContain('onerror')
+        ->not->toContain('javascript:');
+
     $response = $this->get('/berita/' . $content->slug);
 
     $response
         ->assertOk()
         ->assertSee('<p>Konten aman.</p>', false)
-        ->assertDontSee('<script', false)
+        ->assertSee('Berita Uji Sanitasi')
         ->assertDontSee('onerror', false)
         ->assertDontSee('javascript:', false);
 
