@@ -400,6 +400,8 @@ it('does not render administrative or authenticated local paths as public links'
         '/settings/profile',
         '/%61dmin/dashboard',
         '/%2Fadmin/dashboard',
+        '/public/../admin/dashboard',
+        '/%2e%2e/admin/dashboard',
     ] as $path) {
         Menu::factory()->url($path)->create([
             'label' => 'Tautan Terproteksi ' . $path,
