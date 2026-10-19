@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace App\\Http\\Controllers\\Public;
+namespace App\Http\Controllers\Public;
 
-use App\\Enums\\ContentType;
-use App\\Http\\Controllers\\Controller;
-use App\\Models\\Content;
-use App\\Services\\Content\\ContentHtmlSanitizer;
-use Illuminate\\View\\View;
+use App\Enums\ContentType;
+use App\Http\Controllers\Controller;
+use App\Models\Content;
+use App\Services\Content\ContentHtmlSanitizer;
+use Illuminate\View\View;
 
 final class ContentController extends Controller
 {
