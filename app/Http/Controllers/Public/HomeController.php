@@ -9,6 +9,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Content;
 use App\Models\Menu;
 use App\Models\Setting;
+use App\Services\Menu\MenuUrlValidator;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Route;
 
@@ -16,7 +17,8 @@ final class HomeController extends Controller
 {
     public function __construct(
         private readonly MenuUrlValidator $menuUrlValidator,
-    ) {}
+    ) {
+    }
 
     public function __invoke(): View
     {
