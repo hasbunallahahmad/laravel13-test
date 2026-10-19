@@ -41,45 +41,47 @@ final class MenuUrlValidator
 
     private function isValidLocalPath(string $url): bool
     {
-        $decodedUrl = $url;
-        $fullyDecoded = false;
-
-        // Decode a bounded number of times and reject excessive nesting.
-        for ($i = 0; $i < 10; $i++) {
-            if (
-                str_starts_with($decodedUrl, '//')
-                || preg_match('/[\x00-\x1F\x7F\\\\]/', $decodedUrl)
-            ) {
-                return false;
-            }
-
-            $nextDecodedUrl = rawurldecode($decodedUrl);
-
-            if ($nextDecodedUrl === $decodedUrl) {
-                $fullyDecoded = true;
-                break;
-            }
-
-            $decodedUrl = $nextDecodedUrl;
-        }
-
-        if (
-            ! $fullyDecoded
-            || str_starts_with($decodedUrl, '//')
-            || preg_match('/[\x00-\x1F\x7F\\\\]/', $decodedUrl)
-        ) {
-            return false;
-        }
-
-        $path = parse_url($decodedUrl, PHP_URL_PATH);
+        // Parse before decoding so query strings and fragments cannot alter
+        // how the path is interpreted.
+        $path = parse_url($url, PHP_URL_PATH);
 
         if (! is_string($path) || ! str_starts_with($path, '/')) {
             return false;
         }
 
-        // Reject dot segments so browser/server path normalization cannot
-        // turn an apparently public path into a protected route.
-        foreach (explode('/', $path) as $segment) {
+        $decodedPath = $path;
+        $fullyDecoded = false;
+
+        // Decode a bounded number of times and reject excessive nesting.
+        for ($i = 0; $i < 10; $i++) {
+            if (
+                str_starts_with($decodedPath, '//')
+                || preg_match('/[\\x00-\\x1F\\x7F\\\\\\\\]/', $decodedPath)
+            ) {
+                return false;
+            }
+
+            $nextDecodedPath = rawurldecode($decodedPath);
+
+            if ($nextDecodedPath === $decodedPath) {
+                $fullyDecoded = true;
+                break;
+            }
+
+            $decodedPath = $nextDecodedPath;
+        }
+
+        if (
+            ! $fullyDecoded
+            || str_starts_with($decodedPath, '//')
+            || preg_match('/[\\x00-\\x1F\\x7F\\\\\\\\]/', $decodedPath)
+        ) {
+            return false;
+        }
+
+        // Reject dot segments so path normalization cannot escape a public
+        // path and reach a protected route.
+        foreach (explode('/', $decodedPath) as $segment) {
             if ($segment === '.' || $segment === '..') {
                 return false;
             }
@@ -89,7 +91,7 @@ final class MenuUrlValidator
         // from public navigation, even if entered as a local URL.
         return ! preg_match(
             '#^/(?:admin|dashboard|settings)(?:/|$)#i',
-            $path,
+            $decodedPath,
         );
     }
 }
