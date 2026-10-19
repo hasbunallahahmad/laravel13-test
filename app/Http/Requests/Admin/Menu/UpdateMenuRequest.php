@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Http\Requests\Admin\Menu;
 
 use App\Data\Menu\MenuData;
-use App\Services\Menu\MenuUrlValidator;
 use App\Models\Menu;
+use App\Services\Menu\MenuUrlValidator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Validation\Rule;
@@ -66,7 +66,7 @@ final class UpdateMenuRequest extends FormRequest
                             || ! app(MenuUrlValidator::class)->isValid($value)
                         )
                     ) {
-                        $fail('The menu URL must be a safe local path or an HTTP(S) URL.');
+                        $fail('The menu URL is invalid or not allowed for public navigation.');
                     }
                 },
                 'required_if:type,url',
