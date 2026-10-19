@@ -3975,3 +3975,103 @@ test('admin menu permissions are granular', function () {
         ->delete(route('admin.menus.force-delete', $menu))
         ->assertForbidden();
 });
+
+
+test('admin menu store accepts safe local paths', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo('menus.create');
+
+    $response = $this->actingAs($user)
+        ->post(route('admin.menus.store'), [
+            'name' => 'public-services',
+            'label' => 'Layanan Publik',
+            'type' => 'url',
+            'url' => '/layanan?jenis=arsip#permohonan',
+            'target' => '_self',
+            'is_active' => true,
+        ]);
+
+    $response->assertRedirect(route('admin.menus.index'));
+
+    $this->assertDatabaseHas('menus', [
+        'name' => 'public-services',
+        'url' => '/layanan?jenis=arsip#permohonan',
+    ]);
+});
+
+test('admin menu store rejects protected local paths', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo('menus.create');
+
+    $response = $this->actingAs($user)
+        ->post(route('admin.menus.store'), [
+            'name' => 'admin-link',
+            'label' => 'Admin',
+            'type' => 'url',
+            'url' => '/public/../admin/dashboard',
+        ]);
+
+    $response->assertSessionHasErrors('url');
+
+    $this->assertDatabaseMissing('menus', [
+        'name' => 'admin-link',
+    ]);
+});
+
+test('admin menu update accepts safe local paths', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo('menus.update');
+
+    $menu = Menu::factory()->create([
+        'name' => 'public-services',
+        'label' => 'Layanan Publik',
+        'type' => 'url',
+        'url' => 'https://example.org/layanan',
+    ]);
+
+    $response = $this->actingAs($user)
+        ->patch(route('admin.menus.update', $menu), [
+            'name' => 'public-services',
+            'label' => 'Layanan Publik',
+            'type' => 'url',
+            'url' => '/layanan',
+            'target' => '_self',
+            'is_active' => true,
+        ]);
+
+    $response->assertRedirect(route('admin.menus.index'));
+
+    $this->assertDatabaseHas('menus', [
+        'id' => $menu->id,
+        'url' => '/layanan',
+    ]);
+});
+
+test('admin menu update rejects protected local paths', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo('menus.update');
+
+    $menu = Menu::factory()->create([
+        'name' => 'public-services',
+        'label' => 'Layanan Publik',
+        'type' => 'url',
+        'url' => '/layanan',
+    ]);
+
+    $response = $this->actingAs($user)
+        ->patch(route('admin.menus.update', $menu), [
+            'name' => 'public-services',
+            'label' => 'Layanan Publik',
+            'type' => 'url',
+            'url' => '/settings/profile',
+            'target' => '_self',
+            'is_active' => true,
+        ]);
+
+    $response->assertSessionHasErrors('url');
+
+    $this->assertDatabaseHas('menus', [
+        'id' => $menu->id,
+        'url' => '/layanan',
+    ]);
+});
