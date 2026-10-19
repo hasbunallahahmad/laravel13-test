@@ -6,6 +6,7 @@ namespace App\Http\Requests\Admin\Menu;
 
 use App\Data\Menu\MenuData;
 use App\Models\Menu;
+use App\Services\Menu\MenuUrlValidator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Validation\Rule;
@@ -53,7 +54,21 @@ final class UpdateMenuRequest extends FormRequest
                 'nullable',
                 'string',
                 'max:2048',
-                'url:http,https',
+                function (
+                    string $attribute,
+                    mixed $value,
+                    \Closure $fail,
+                ): void {
+                    if (
+                        $value !== null
+                        && (
+                            ! is_string($value)
+                            || ! app(MenuUrlValidator::class)->isValid($value)
+                        )
+                    ) {
+                        $fail('The menu URL is invalid or not allowed for public navigation.');
+                    }
+                },
                 'required_if:type,url',
                 'prohibited_if:type,route',
             ],

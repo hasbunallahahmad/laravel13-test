@@ -389,3 +389,40 @@ it('does not display active child menus when their parent is inactive or deleted
         ->assertDontSee('Induk Terhapus')
         ->assertDontSee('Submenu dari Induk Terhapus');
 });
+
+
+it('does not render administrative or authenticated local paths as public links', function (): void {
+    foreach ([
+        '/admin',
+        '/admin/dashboard',
+        '/admin/menus',
+        '/dashboard',
+        '/settings/profile',
+        '/%61dmin/dashboard',
+        '/%2Fadmin/dashboard',
+        '/public/../admin/dashboard',
+        '/%2e%2e/admin/dashboard',
+    ] as $path) {
+        Menu::factory()->url($path)->create([
+            'label' => 'Tautan Terproteksi ' . $path,
+        ]);
+    }
+
+    $response = $this->get(route('home'));
+
+    $response->assertOk();
+
+    foreach ([
+        '/admin',
+        '/admin/dashboard',
+        '/admin/menus',
+        '/dashboard',
+        '/settings/profile',
+        '/%61dmin/dashboard',
+        '/%2Fadmin/dashboard',
+        '/public/../admin/dashboard',
+        '/%2e%2e/admin/dashboard',
+    ] as $path) {
+        $response->assertDontSee('href="' . $path . '"', false);
+    }
+});
