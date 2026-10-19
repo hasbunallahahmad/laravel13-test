@@ -2,33 +2,50 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers\Public;
+namespace App\\Http\\Controllers\\Public;
 
-use App\Enums\ContentType;
-use App\Http\Controllers\Controller;
-use App\Models\Content;
-use Illuminate\View\View;
+use App\\Enums\\ContentType;
+use App\\Http\\Controllers\\Controller;
+use App\\Models\\Content;
+use App\\Services\\Content\\ContentHtmlSanitizer;
+use Illuminate\\View\\View;
 
 final class ContentController extends Controller
 {
+    public function __construct(
+        private readonly ContentHtmlSanitizer $contentHtmlSanitizer,
+    ) {}
+
     public function news(string $slug): View
     {
-        $content = $this->findPublishedContent(
+        return $this->show($this->findPublishedContent(
             ContentType::NEWS,
             $slug,
-        );
-
-        return view('public.content.show', compact('content'));
+        ));
     }
 
     public function announcement(string $slug): View
     {
-        $content = $this->findPublishedContent(
+        return $this->show($this->findPublishedContent(
             ContentType::ANNOUNCEMENT,
             $slug,
-        );
+        ));
+    }
 
-        return view('public.content.show', compact('content'));
+    public function event(string $slug): View
+    {
+        return $this->show($this->findPublishedContent(
+            ContentType::EVENT,
+            $slug,
+        ));
+    }
+
+    public function article(string $slug): View
+    {
+        return $this->show($this->findPublishedContent(
+            ContentType::ARTICLE,
+            $slug,
+        ));
     }
 
     private function findPublishedContent(
@@ -42,23 +59,13 @@ final class ContentController extends Controller
             ->firstOrFail();
     }
 
-    public function event(string $slug): View
+    private function show(Content $content): View
     {
-        $content = $this->findPublishedContent(
-            ContentType::EVENT,
-            $slug,
-        );
-
-        return view('public.content.show', compact('content'));
-    }
-
-    public function article(string $slug): View
-    {
-        $content = $this->findPublishedContent(
-            ContentType::ARTICLE,
-            $slug,
-        );
-
-        return view('public.content.show', compact('content'));
+        return view('public.content.show', [
+            'content' => $content,
+            'sanitizedBody' => $this->contentHtmlSanitizer->sanitize(
+                (string) $content->body,
+            ),
+        ]);
     }
 }
