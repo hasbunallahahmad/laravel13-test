@@ -179,3 +179,45 @@ test('removes unsafe image attributes', function () {
         ->not->toContain('onerror')
         ->not->toContain('position: fixed');
 });
+
+test('removes data URLs from image sources', function () {
+    $html = '<img src="data:image/svg+xml,<svg onload=alert(1)>" alt="Unsafe image">';
+
+    $sanitized = $this->sanitizer->sanitize($html);
+
+    expect($sanitized)
+        ->not->toContain('data:image/svg+xml')
+        ->not->toContain('onload=');
+});
+
+test('removes dangerous CSS URL values from supported style attributes', function () {
+    $html = <<<'HTML'
+        <p style="background-image: url(javascript:alert(1)); color: red">
+            Contoh teks
+        </p>
+    HTML;
+
+    $sanitized = $this->sanitizer->sanitize($html);
+
+    expect($sanitized)
+        ->not->toContain('javascript:')
+        ->not->toContain('background-image')
+        ->toContain('Contoh teks');
+});
+
+test('sanitizes malformed nested HTML containing executable markup', function () {
+    $html = <<<'HTML'
+        <p>Konten aman
+            <script><img src=x onerror=alert(1)></script>
+            <img src=x onerror=alert(2)>
+        </p>
+    HTML;
+
+    $sanitized = $this->sanitizer->sanitize($html);
+
+    expect($sanitized)
+        ->toContain('Konten aman')
+        ->not->toContain('<script')
+        ->not->toContain('onerror')
+        ->not->toContain('alert(');
+});
