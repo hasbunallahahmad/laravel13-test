@@ -213,3 +213,99 @@ test('public article page displays published article by slug', function () {
         ->assertSee('Artikel Literasi')
         ->assertSee('Pentingnya budaya literasi.');
 });
+
+
+test('public content page uses the shared public site shell', function () {
+    $content = Content::factory()->create([
+        'type' => ContentType::NEWS,
+        'title' => 'Berita Layout Bersama',
+        'slug' => 'berita-layout-bersama',
+        'body' => '<p>Isi berita untuk pengujian layout.</p>',
+        'status' => ContentStatus::PUBLISHED,
+        'published_at' => now()->subMinute(),
+    ]);
+
+    $this->get('/berita/' . $content->slug)
+        ->assertOk()
+        ->assertSee('<header', false)
+        ->assertSee('Pemerintah Kota Semarang')
+        ->assertSee('<footer', false)
+        ->assertSee('Dinas Arsip dan Perpustakaan Kota Semarang');
+});
+
+
+test('public content page renders canonical and Open Graph metadata', function () {
+    $content = Content::factory()->create([
+        'type' => ContentType::NEWS,
+        'title' => 'Berita SEO Publik',
+        'slug' => 'berita-seo-publik',
+        'excerpt' => 'Deskripsi SEO untuk berita publik.',
+        'body' => '<p>Isi berita SEO.</p>',
+        'status' => ContentStatus::PUBLISHED,
+        'published_at' => now()->subMinute(),
+    ]);
+
+    $canonicalUrl = url('/berita/' . $content->slug);
+
+    $this->get('/berita/' . $content->slug)
+        ->assertOk()
+        ->assertSee(
+            '<link rel="canonical" href="' . $canonicalUrl . '">',
+            false,
+        )
+        ->assertSee(
+            '<meta property="og:title" content="Berita SEO Publik">',
+            false,
+        )
+        ->assertSee(
+            '<meta property="og:description" content="Deskripsi SEO untuk berita publik.">',
+            false,
+        )
+        ->assertSee(
+            '<meta property="og:url" content="' . $canonicalUrl . '">',
+            false,
+        );
+});
+
+
+test('public SEO metadata escapes content that could inject HTML attributes', function () {
+    $content = Content::factory()->create([
+        'type' => ContentType::NEWS,
+        'title' => 'Berita Metadata Aman',
+        'slug' => 'berita-metadata-aman',
+        'excerpt' => 'Deskripsi" onmouseover="alert(1)',
+        'body' => '<p>Isi berita.</p>',
+        'status' => ContentStatus::PUBLISHED,
+        'published_at' => now()->subMinute(),
+    ]);
+
+    $response = $this->get('/berita/' . $content->slug);
+
+    $response
+        ->assertOk()
+        ->assertDontSee('onmouseover="alert(1)"', false);
+});
+
+
+test('public content page uses a safe fallback description when excerpt is empty', function () {
+    $content = Content::factory()->create([
+        'type' => ContentType::NEWS,
+        'title' => 'Berita Tanpa Ringkasan',
+        'slug' => 'berita-tanpa-ringkasan',
+        'excerpt' => null,
+        'body' => '<p>Isi berita tanpa ringkasan.</p>',
+        'status' => ContentStatus::PUBLISHED,
+        'published_at' => now()->subMinute(),
+    ]);
+
+    $this->get('/berita/' . $content->slug)
+        ->assertOk()
+        ->assertSee(
+            '<meta name="description" content="Website resmi Dinas Arsip dan Perpustakaan Kota Semarang.">',
+            false,
+        )
+        ->assertSee(
+            '<meta property="og:description" content="Website resmi Dinas Arsip dan Perpustakaan Kota Semarang.">',
+            false,
+        );
+});

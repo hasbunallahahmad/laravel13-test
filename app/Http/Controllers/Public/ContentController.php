@@ -8,44 +8,42 @@ use App\Enums\ContentType;
 use App\Http\Controllers\Controller;
 use App\Models\Content;
 use App\Services\Content\ContentHtmlSanitizer;
+use App\Services\Menu\PublicMenuService;
 use Illuminate\View\View;
 
 final class ContentController extends Controller
 {
     public function __construct(
         private readonly ContentHtmlSanitizer $contentHtmlSanitizer,
+        private readonly PublicMenuService $publicMenuService,
     ) {}
 
     public function news(string $slug): View
     {
-        return $this->show($this->findPublishedContent(
-            ContentType::NEWS,
-            $slug,
-        ));
+        return $this->show(
+            $this->findPublishedContent(ContentType::NEWS, $slug),
+        );
     }
 
     public function announcement(string $slug): View
     {
-        return $this->show($this->findPublishedContent(
-            ContentType::ANNOUNCEMENT,
-            $slug,
-        ));
+        return $this->show(
+            $this->findPublishedContent(ContentType::ANNOUNCEMENT, $slug),
+        );
     }
 
     public function event(string $slug): View
     {
-        return $this->show($this->findPublishedContent(
-            ContentType::EVENT,
-            $slug,
-        ));
+        return $this->show(
+            $this->findPublishedContent(ContentType::EVENT, $slug),
+        );
     }
 
     public function article(string $slug): View
     {
-        return $this->show($this->findPublishedContent(
-            ContentType::ARTICLE,
-            $slug,
-        ));
+        return $this->show(
+            $this->findPublishedContent(ContentType::ARTICLE, $slug),
+        );
     }
 
     private function findPublishedContent(
@@ -63,6 +61,7 @@ final class ContentController extends Controller
     {
         return view('public.content.show', [
             'content' => $content,
+            'menus' => $this->publicMenuService->getMenus(),
             'sanitizedBody' => $this->contentHtmlSanitizer->sanitize(
                 (string) $content->body,
             ),
