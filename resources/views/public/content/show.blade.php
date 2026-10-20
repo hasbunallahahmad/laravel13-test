@@ -1,27 +1,35 @@
-<!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+@extends('layouts.public')
 
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+@section('og_title', $content->title)
+@section('canonical_url', url()->current())
+@section('og_type', 'article')
 
-    <title>{{ $content->title }}</title>
-</head>
+@section('title', $content->title . ' — Dinas Arsip dan Perpustakaan Kota Semarang')
 
-<body>
-    <main>
-        <article>
-            <h1>{{ $content->title }}</h1>
+@php
+    $metaDescription = filled($content->excerpt) ? $content->excerpt : 'Website resmi Dinas Arsip dan Perpustakaan Kota Semarang.';
+@endphp
 
-            @if ($content->excerpt)
-                <p>{{ $content->excerpt }}</p>
-            @endif
+@section('meta_description', $metaDescription)
 
-            <div>
-                {!! $sanitizedBody !!}
-            </div>
-        </article>
-    </main>
-</body>
+@section('content')
+    <article class="rounded-xl border border-zinc-200 bg-white p-6 sm:p-8">
+        <p class="text-sm font-semibold uppercase tracking-wide text-emerald-700">
+            Informasi Publik
+        </p>
 
-</html>
+        <h1 class="mt-2 text-3xl font-bold">
+            {{ $content->title }}
+        </h1>
+
+        @if ($content->excerpt)
+            <p class="mt-4 leading-7 text-zinc-600">
+                {{ $content->excerpt }}
+            </p>
+        @endif
+
+        <div class="mt-8">
+            {!! $sanitizedBody !!}
+        </div>
+    </article>
+@endsection
