@@ -392,17 +392,19 @@ it('does not display active child menus when their parent is inactive or deleted
 
 
 it('does not render administrative or authenticated local paths as public links', function (): void {
-    foreach ([
-        '/admin',
-        '/admin/dashboard',
-        '/admin/menus',
-        '/dashboard',
-        '/settings/profile',
-        '/%61dmin/dashboard',
-        '/%2Fadmin/dashboard',
-        '/public/../admin/dashboard',
-        '/%2e%2e/admin/dashboard',
-    ] as $path) {
+    foreach (
+        [
+            '/admin',
+            '/admin/dashboard',
+            '/admin/menus',
+            '/dashboard',
+            '/settings/profile',
+            '/%61dmin/dashboard',
+            '/%2Fadmin/dashboard',
+            '/public/../admin/dashboard',
+            '/%2e%2e/admin/dashboard',
+        ] as $path
+    ) {
         Menu::factory()->url($path)->create([
             'label' => 'Tautan Terproteksi ' . $path,
         ]);
@@ -412,17 +414,50 @@ it('does not render administrative or authenticated local paths as public links'
 
     $response->assertOk();
 
-    foreach ([
-        '/admin',
-        '/admin/dashboard',
-        '/admin/menus',
-        '/dashboard',
-        '/settings/profile',
-        '/%61dmin/dashboard',
-        '/%2Fadmin/dashboard',
-        '/public/../admin/dashboard',
-        '/%2e%2e/admin/dashboard',
-    ] as $path) {
+    foreach (
+        [
+            '/admin',
+            '/admin/dashboard',
+            '/admin/menus',
+            '/dashboard',
+            '/settings/profile',
+            '/%61dmin/dashboard',
+            '/%2Fadmin/dashboard',
+            '/public/../admin/dashboard',
+            '/%2e%2e/admin/dashboard',
+        ] as $path
+    ) {
         $response->assertDontSee('href="' . $path . '"', false);
     }
+});
+
+it('renders balanced section elements on the homepage', function (): void {
+    $response = $this->get(route('home'));
+
+    $response->assertOk();
+
+    $html = $response->getContent();
+
+    expect(substr_count($html, '<section'))
+        ->toBe(substr_count($html, '</section>'));
+});
+
+it('renders balanced section elements when no public settings exist', function (): void {
+    Setting::factory()->private()->create([
+        'group' => 'system',
+        'key' => 'private_only_test',
+        'value' => 'Tidak boleh ditampilkan',
+        'type' => 'string',
+    ]);
+
+    $response = $this->get(route('home'));
+
+    $response->assertOk()
+        ->assertDontSee('Informasi Publik')
+        ->assertDontSee('Tidak boleh ditampilkan');
+
+    $html = $response->getContent();
+
+    expect(substr_count($html, '<section'))
+        ->toBe(substr_count($html, '</section>'));
 });
