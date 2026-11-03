@@ -58,5 +58,4 @@
             </dl>
         </section>
     @endif
-    </section>
 @endsection
