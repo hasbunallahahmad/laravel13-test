@@ -1,6 +1,15 @@
 @extends('layouts.public')
 
 @section('content')
+    <section aria-labelledby="home-hero-heading">
+        <h1 id="home-hero-heading" class="text-4xl font-bold">
+            {{ $settings->get('appearance.home_hero_title')?->value ?? 'Dinas Arsip dan Perpustakaan Kota Semarang' }}
+        </h1>
+
+        <p id="home-hero-subtitle" class="mt-4 text-lg text-gray-600">
+            {{ $settings->get('appearance.home_hero_subtitle')?->value ?? 'Menjaga memori, merawat sejarah, membangun masa depan.' }}
+        </p>
+    </section>
     <section aria-labelledby="news-heading">
         <div class="mb-6">
             <p class="text-sm font-semibold uppercase tracking-wide text-emerald-700">
