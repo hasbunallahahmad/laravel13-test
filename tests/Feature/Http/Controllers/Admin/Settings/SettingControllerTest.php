@@ -382,6 +382,42 @@ test('user with settings update permission can see edit controls', function () {
     $response->assertSee('Edit');
 });
 
+test('user with settings update permission can navigate to each setting edit page from the index', function () {
+    $user = User::factory()->create();
+
+    $user->givePermissionTo([
+        'settings.view',
+        'settings.update',
+    ]);
+
+    $settings = [
+        ['group' => 'general', 'key' => 'site_name'],
+        ['group' => 'appearance', 'key' => 'theme_color'],
+        ['group' => 'social', 'key' => 'facebook_url'],
+        ['group' => 'system', 'key' => 'maintenance_mode'],
+    ];
+
+    foreach ($settings as $data) {
+        Setting::factory()->create([
+            ...$data,
+            'value' => 'Test Value',
+            'type' => 'string',
+        ]);
+    }
+
+    $response = $this
+        ->actingAs($user)
+        ->get(route('admin.settings.index'));
+
+    $response->assertOk();
+
+    foreach ($settings as $data) {
+        $editUrl = route('admin.settings.edit', $data);
+
+        $response->assertSee('href="' . $editUrl . '"', false);
+    }
+});
+
 /*
 |--------------------------------------------------------------------------
 | Edit Setting

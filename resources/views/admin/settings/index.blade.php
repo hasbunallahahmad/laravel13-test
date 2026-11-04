@@ -24,8 +24,7 @@
 
             <div class="mt-6 space-y-4">
                 @forelse ($settings->where('group', 'general') as $setting)
-                    <div
-                        class="flex items-center justify-between gap-4 border-b border-zinc-200 py-3 last:border-0 dark:border-zinc-700">
+                    <div class="flex items-center justify-between gap-4 border-b border-zinc-200 py-3 last:border-0 dark:border-zinc-700">
 
                         <div>
                             <div class="font-medium text-zinc-900 dark:text-white">
@@ -42,7 +41,12 @@
                         </div>
 
                         @can('settings.update')
-                            <flux:button size="sm" variant="ghost" icon="pencil">
+                            <flux:button
+                                href="{{ route('admin.settings.edit', [
+                                    'group' => $setting->group,
+                                    'key' => $setting->key,
+                                ]) }}"
+                                size="sm" variant="ghost" icon="pencil">
                                 {{ __('Edit') }}
                             </flux:button>
                         @endcan
@@ -68,8 +72,7 @@
 
             <div class="mt-6 space-y-4">
                 @forelse ($settings->where('group', 'appearance') as $setting)
-                    <div
-                        class="flex items-center justify-between gap-4 border-b border-zinc-200 py-3 last:border-0 dark:border-zinc-700">
+                    <div class="flex items-center justify-between gap-4 border-b border-zinc-200 py-3 last:border-0 dark:border-zinc-700">
 
                         <div>
                             <div class="font-medium text-zinc-900 dark:text-white">
@@ -86,7 +89,12 @@
                         </div>
 
                         @can('settings.update')
-                            <flux:button size="sm" variant="ghost" icon="pencil">
+                            <flux:button
+                                href="{{ route('admin.settings.edit', [
+                                    'group' => $setting->group,
+                                    'key' => $setting->key,
+                                ]) }}"
+                                size="sm" variant="ghost" icon="pencil">
                                 {{ __('Edit') }}
                             </flux:button>
                         @endcan
@@ -112,8 +120,7 @@
 
             <div class="mt-6 space-y-4">
                 @forelse ($settings->where('group', 'social') as $setting)
-                    <div
-                        class="flex items-center justify-between gap-4 border-b border-zinc-200 py-3 last:border-0 dark:border-zinc-700">
+                    <div class="flex items-center justify-between gap-4 border-b border-zinc-200 py-3 last:border-0 dark:border-zinc-700">
 
                         <div>
                             <div class="font-medium text-zinc-900 dark:text-white">
@@ -130,7 +137,12 @@
                         </div>
 
                         @can('settings.update')
-                            <flux:button size="sm" variant="ghost" icon="pencil">
+                            <flux:button
+                                href="{{ route('admin.settings.edit', [
+                                    'group' => $setting->group,
+                                    'key' => $setting->key,
+                                ]) }}"
+                                size="sm" variant="ghost" icon="pencil">
                                 {{ __('Edit') }}
                             </flux:button>
                         @endcan
@@ -156,8 +168,7 @@
 
             <div class="mt-6 space-y-4">
                 @forelse ($settings->where('group', 'system') as $setting)
-                    <div
-                        class="flex items-center justify-between gap-4 border-b border-zinc-200 py-3 last:border-0 dark:border-zinc-700">
+                    <div class="flex items-center justify-between gap-4 border-b border-zinc-200 py-3 last:border-0 dark:border-zinc-700">
 
                         <div>
                             <div class="font-medium text-zinc-900 dark:text-white">
@@ -174,7 +185,12 @@
                         </div>
 
                         @can('settings.update')
-                            <flux:button size="sm" variant="ghost" icon="pencil">
+                            <flux:button
+                                href="{{ route('admin.settings.edit', [
+                                    'group' => $setting->group,
+                                    'key' => $setting->key,
+                                ]) }}"
+                                size="sm" variant="ghost" icon="pencil">
                                 {{ __('Edit') }}
                             </flux:button>
                         @endcan
