@@ -461,3 +461,65 @@ it('renders balanced section elements when no public settings exist', function (
     expect(substr_count($html, '<section'))
         ->toBe(substr_count($html, '</section>'));
 });
+
+it('displays the homepage hero title from public settings', function (): void {
+    $heroTitle = 'Arsip Semarang dalam Genggaman Anda';
+
+    Setting::factory()->create([
+        'group' => 'appearance',
+        'key' => 'home_hero_title',
+        'value' => $heroTitle,
+        'type' => 'string',
+        'is_public' => true,
+    ]);
+
+    $response = $this->get(route('home'));
+
+    $response->assertOk()
+        ->assertSee('id="home-hero-heading"', false)
+        ->assertSee($heroTitle);
+});
+
+it('displays the homepage hero subtitle from public settings', function (): void {
+    $heroSubtitle = 'Menjaga memori, merawat sejarah, membangun masa depan.';
+
+    Setting::factory()->create([
+        'group' => 'appearance',
+        'key' => 'home_hero_subtitle',
+        'value' => $heroSubtitle,
+        'type' => 'string',
+        'is_public' => true,
+    ]);
+
+    $response = $this->get(route('home'));
+
+    $response->assertOk()
+        ->assertSee('id="home-hero-subtitle"', false)
+        ->assertSee($heroSubtitle);
+});
+
+it('escapes HTML in homepage hero title and subtitle', function (): void {
+    Setting::factory()->create([
+        'group' => 'appearance',
+        'key' => 'home_hero_title',
+        'value' => '<script>alert("xss-title")</script>',
+        'type' => 'string',
+        'is_public' => true,
+    ]);
+
+    Setting::factory()->create([
+        'group' => 'appearance',
+        'key' => 'home_hero_subtitle',
+        'value' => '<img src=x onerror=alert("xss-subtitle")>',
+        'type' => 'string',
+        'is_public' => true,
+    ]);
+
+    $response = $this->get(route('home'));
+
+    $response->assertOk()
+        ->assertSee('&lt;script&gt;alert(&quot;xss-title&quot;)&lt;/script&gt;', false)
+        ->assertSee('&lt;img src=x onerror=alert(&quot;xss-subtitle&quot;)&gt;', false)
+        ->assertDontSee('<script>alert("xss-title")</script>', false)
+        ->assertDontSee('<img src=x onerror=alert("xss-subtitle")>', false);
+});
