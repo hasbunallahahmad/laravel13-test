@@ -77,6 +77,14 @@ final class RolePermissionSeeder extends Seeder
             'menus.delete',
             'menus.restore',
             'menus.force-delete',
+
+            // Homepage CTAs
+            'homepage-ctas.view',
+            'homepage-ctas.create',
+            'homepage-ctas.update',
+            'homepage-ctas.delete',
+            'homepage-ctas.restore',
+            'homepage-ctas.force-delete',
         ];
 
         foreach ($permissions as $permission) {
@@ -165,6 +173,13 @@ final class RolePermissionSeeder extends Seeder
             'menus.update',
             'menus.delete',
             'menus.restore',
+
+            'homepage-ctas.view',
+            'homepage-ctas.create',
+            'homepage-ctas.update',
+            'homepage-ctas.delete',
+            'homepage-ctas.restore',
+            'homepage-ctas.force-delete',
         ]);
 
         /*

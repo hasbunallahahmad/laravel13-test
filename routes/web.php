@@ -1,14 +1,15 @@
 <?php
 
-use App\Http\Controllers\Public\HomeController;
 use App\Http\Controllers\Admin\ContentController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\HomepageCtaController;
 use App\Http\Controllers\Admin\MediaController;
 use App\Http\Controllers\Admin\MediaPickerController;
 use App\Http\Controllers\Admin\MenuController;
 use App\Http\Controllers\Admin\Settings\SettingController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Public\ContentController as PublicContentController;
+use App\Http\Controllers\Public\HomeController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -21,7 +22,6 @@ use Illuminate\Support\Facades\Route;
 //     return view('welcome');
 // })->name('home');
 Route::get('/', HomeController::class)->name('home');
-
 
 Route::get('/berita/{slug}', [PublicContentController::class, 'news'])
     ->name('public.news.show');
@@ -229,6 +229,45 @@ Route::middleware(['auth'])
             ->withTrashed()
             ->name('contents.force-destroy');
 
+        // Homepage CTA
+        Route::get('/homepage-ctas', [HomepageCtaController::class, 'index'])
+            ->middleware('permission:homepage-ctas.view')
+            ->name('homepage-ctas.index');
+
+        Route::get('/homepage-ctas/create', [HomepageCtaController::class, 'create'])
+            ->middleware('permission:homepage-ctas.create')
+            ->name('homepage-ctas.create');
+
+        Route::post('/homepage-ctas', [HomepageCtaController::class, 'store'])
+            ->middleware('permission:homepage-ctas.create')
+            ->name('homepage-ctas.store');
+
+        Route::get('/homepage-ctas/trash', [HomepageCtaController::class, 'trash'])
+            ->middleware('permission:homepage-ctas.view')
+            ->name('homepage-ctas.trash');
+
+        Route::get('/homepage-ctas/{homepageCta}/edit', [HomepageCtaController::class, 'edit'])
+            ->middleware('permission:homepage-ctas.update')
+            ->name('homepage-ctas.edit');
+
+        Route::patch('/homepage-ctas/{homepageCta}', [HomepageCtaController::class, 'update'])
+            ->middleware('permission:homepage-ctas.update')
+            ->name('homepage-ctas.update');
+
+        Route::delete('/homepage-ctas/{homepageCta}', [HomepageCtaController::class, 'destroy'])
+            ->middleware('permission:homepage-ctas.delete')
+            ->name('homepage-ctas.destroy');
+
+        Route::patch('/homepage-ctas/{homepageCta}/restore', [HomepageCtaController::class, 'restore'])
+            ->withTrashed()
+            ->middleware('permission:homepage-ctas.restore')
+            ->name('homepage-ctas.restore');
+
+        Route::delete('/homepage-ctas/{homepageCta}/force-delete', [HomepageCtaController::class, 'forceDelete'])
+            ->withTrashed()
+            ->middleware('permission:homepage-ctas.force-delete')
+            ->name('homepage-ctas.force-delete');
+
         /*
         |--------------------------------------------------------------------------
         | Users
@@ -278,4 +317,4 @@ Route::middleware(['auth'])
 |--------------------------------------------------------------------------
 */
 
-require __DIR__ . '/settings.php';
+require __DIR__.'/settings.php';

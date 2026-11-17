@@ -3,6 +3,8 @@
 namespace Tests\Feature;
 
 use App\Models\User;
+use Database\Seeders\RolePermissionSeeder;
+use Database\Seeders\SuperAdminSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
@@ -13,7 +15,7 @@ class DatabaseSeederTest extends TestCase
 
     public function test_role_permission_seeder_creates_required_roles(): void
     {
-        $this->seed(\Database\Seeders\RolePermissionSeeder::class);
+        $this->seed(RolePermissionSeeder::class);
 
         $roles = [
             'super-admin',
@@ -34,9 +36,9 @@ class DatabaseSeederTest extends TestCase
 
     public function test_super_admin_seeder_creates_active_user_with_role(): void
     {
-        $this->seed(\Database\Seeders\RolePermissionSeeder::class);
+        $this->seed(RolePermissionSeeder::class);
 
-        $this->seed(\Database\Seeders\SuperAdminSeeder::class);
+        $this->seed(SuperAdminSeeder::class);
 
         $user = User::query()
             ->where('email', 'admin@dynamiccms.test')
@@ -53,7 +55,7 @@ class DatabaseSeederTest extends TestCase
 
     public function test_role_permission_seeder_creates_required_menu_permissions(): void
     {
-        $this->seed(\Database\Seeders\RolePermissionSeeder::class);
+        $this->seed(RolePermissionSeeder::class);
 
         $permissions = [
             'menus.view',
@@ -74,7 +76,7 @@ class DatabaseSeederTest extends TestCase
 
     public function test_admin_role_has_required_menu_permissions(): void
     {
-        $this->seed(\Database\Seeders\RolePermissionSeeder::class);
+        $this->seed(RolePermissionSeeder::class);
 
         $admin = Role::query()
             ->where('name', 'admin')
@@ -91,7 +93,7 @@ class DatabaseSeederTest extends TestCase
 
     public function test_super_admin_role_has_all_menu_permissions(): void
     {
-        $this->seed(\Database\Seeders\RolePermissionSeeder::class);
+        $this->seed(RolePermissionSeeder::class);
 
         $superAdmin = Role::query()
             ->where('name', 'super-admin')
@@ -111,6 +113,111 @@ class DatabaseSeederTest extends TestCase
                 $superAdmin->hasPermissionTo($permission),
                 "Super admin does not have permission [{$permission}]."
             );
+        }
+    }
+
+    public function test_role_permission_seeder_creates_required_homepage_cta_permissions(): void
+    {
+        $this->seed(RolePermissionSeeder::class);
+
+        $permissions = [
+            'homepage-ctas.view',
+            'homepage-ctas.create',
+            'homepage-ctas.update',
+            'homepage-ctas.delete',
+            'homepage-ctas.restore',
+            'homepage-ctas.force-delete',
+        ];
+
+        foreach ($permissions as $permission) {
+            $this->assertDatabaseHas('permissions', [
+                'name' => $permission,
+                'guard_name' => 'web',
+            ]);
+        }
+    }
+
+    public function test_admin_role_has_all_homepage_cta_permissions(): void
+    {
+        $this->seed(RolePermissionSeeder::class);
+
+        $admin = Role::query()
+            ->where('name', 'admin')
+            ->firstOrFail();
+
+        $permissions = [
+            'homepage-ctas.view',
+            'homepage-ctas.create',
+            'homepage-ctas.update',
+            'homepage-ctas.delete',
+            'homepage-ctas.restore',
+            'homepage-ctas.force-delete',
+        ];
+
+        foreach ($permissions as $permission) {
+            $this->assertTrue(
+                $admin->hasPermissionTo($permission),
+                "Admin does not have permission [{$permission}]."
+            );
+        }
+    }
+
+    public function test_super_admin_role_has_all_homepage_cta_permissions(): void
+    {
+        $this->seed(RolePermissionSeeder::class);
+
+        $superAdmin = Role::query()
+            ->where('name', 'super-admin')
+            ->firstOrFail();
+
+        $permissions = [
+            'homepage-ctas.view',
+            'homepage-ctas.create',
+            'homepage-ctas.update',
+            'homepage-ctas.delete',
+            'homepage-ctas.restore',
+            'homepage-ctas.force-delete',
+        ];
+
+        foreach ($permissions as $permission) {
+            $this->assertTrue(
+                $superAdmin->hasPermissionTo($permission),
+                "Super admin does not have permission [{$permission}]."
+            );
+        }
+    }
+
+    public function test_other_roles_do_not_have_homepage_cta_permissions(): void
+    {
+        $this->seed(RolePermissionSeeder::class);
+
+        $roles = [
+            'editor',
+            'author',
+            'contributor',
+            'viewer',
+        ];
+
+        $permissions = [
+            'homepage-ctas.view',
+            'homepage-ctas.create',
+            'homepage-ctas.update',
+            'homepage-ctas.delete',
+            'homepage-ctas.restore',
+            'homepage-ctas.force-delete',
+        ];
+
+        foreach ($roles as $roleName) {
+            $role = Role::query()
+                ->where('name', $roleName)
+                ->firstOrFail();
+
+            foreach ($permissions as $permission) {
+                $this->assertFalse(
+                    $role->hasPermissionTo($permission),
+                    "Role [{$roleName}] unexpectedly has permission [{$permission}]."
+                );
+            }
         }
     }
 }
