@@ -23,6 +23,7 @@ class HomepageCtaButton extends Model
         'target',
         'sort_order',
         'is_active',
+        'deleted_with_homepage_cta',
     ];
 
     protected function casts(): array
@@ -31,6 +32,7 @@ class HomepageCtaButton extends Model
             'homepage_cta_id' => 'integer',
             'sort_order' => 'integer',
             'is_active' => 'boolean',
+            'deleted_with_homepage_cta' => 'boolean',
         ];
     }
 

@@ -130,6 +130,9 @@ final class HomepageCtaService
      *
      * Previously deleted buttons remain deleted.
      */
+    /**
+     * Restore a soft deleted homepage CTA and buttons deleted with it.
+     */
     public function restore(HomepageCta $homepageCta): HomepageCta
     {
         return DB::transaction(function () use ($homepageCta): HomepageCta {
@@ -140,6 +143,17 @@ final class HomepageCtaService
             }
 
             $homepageCta->restore();
+
+            $homepageCta->buttons()
+                ->withTrashed()
+                ->where('deleted_with_homepage_cta', true)
+                ->restore();
+
+            $homepageCta->buttons()
+                ->where('deleted_with_homepage_cta', true)
+                ->update([
+                    'deleted_with_homepage_cta' => false,
+                ]);
 
             return $homepageCta->refresh()->load('buttons');
         });
@@ -189,11 +203,15 @@ final class HomepageCtaService
     }
 
     /**
-     * Soft delete a homepage CTA and all its buttons atomically.
+     * Soft delete a homepage CTA and all its active buttons atomically.
      */
     public function delete(HomepageCta $homepageCta): void
     {
         DB::transaction(function () use ($homepageCta): void {
+            $homepageCta->buttons()->update([
+                'deleted_with_homepage_cta' => true,
+            ]);
+
             $homepageCta->buttons()->delete();
 
             $homepageCta->delete();

@@ -250,7 +250,7 @@ it('rejects a button uuid belonging to another homepage CTA', function (): void 
         ],
     );
 
-    expect(fn () => $service->update($homepageCta, $data))
+    expect(fn() => $service->update($homepageCta, $data))
         ->toThrow(
             InvalidArgumentException::class,
             'The selected button does not belong to this homepage CTA.',
@@ -308,7 +308,8 @@ it('soft deletes a homepage CTA and its active buttons', function (): void {
         ->toBe(2);
 });
 
-it('restores a soft deleted homepage CTA without restoring its buttons', function (): void {
+
+it('restores a soft deleted homepage CTA and its buttons', function (): void {
     $service = app(HomepageCtaService::class);
 
     $homepageCta = HomepageCta::query()->create([
@@ -335,18 +336,72 @@ it('restores a soft deleted homepage CTA without restoring its buttons', functio
     $restoredCta = $service->restore($deletedCta);
 
     expect($restoredCta->trashed())->toBeFalse()
-        ->and($restoredCta->title)->toBe('Jelajahi Layanan')
-        ->and($restoredCta->buttons)->toHaveCount(0);
+        ->and($restoredCta->buttons)->toHaveCount(1)
+        ->and($restoredCta->buttons->first()->uuid)->toBe($button->uuid);
 
     $this->assertDatabaseHas('homepage_ctas', [
         'id' => $homepageCta->id,
         'deleted_at' => null,
     ]);
 
-    $this->assertSoftDeleted('homepage_cta_buttons', [
+    $this->assertDatabaseHas('homepage_cta_buttons', [
         'id' => $button->id,
+        'deleted_at' => null,
     ]);
 });
+
+
+it('does not restore buttons deleted independently before the homepage CTA', function (): void {
+    $service = app(HomepageCtaService::class);
+
+    $homepageCta = HomepageCta::query()->create([
+        'title' => 'Jelajahi Layanan',
+        'description' => 'Temukan layanan kami.',
+        'sort_order' => 1,
+        'is_active' => true,
+    ]);
+
+    $buttonToRestore = $homepageCta->buttons()->create([
+        'label' => 'Lihat Layanan',
+        'type' => 'url',
+        'url' => '/layanan',
+        'target' => '_self',
+        'sort_order' => 1,
+        'is_active' => true,
+    ]);
+
+    $independentlyDeletedButton = $homepageCta->buttons()->create([
+        'label' => 'Tombol Lama',
+        'type' => 'url',
+        'url' => '/lama',
+        'target' => '_self',
+        'sort_order' => 2,
+        'is_active' => true,
+    ]);
+
+    $independentlyDeletedButton->delete();
+
+    $service->delete($homepageCta);
+
+    $deletedCta = HomepageCta::withTrashed()
+        ->findOrFail($homepageCta->id);
+
+    $restoredCta = $service->restore($deletedCta);
+
+    expect($restoredCta->buttons)->toHaveCount(1)
+        ->and($restoredCta->buttons->first()->uuid)
+        ->toBe($buttonToRestore->uuid);
+
+    $this->assertDatabaseHas('homepage_cta_buttons', [
+        'id' => $buttonToRestore->id,
+        'deleted_at' => null,
+    ]);
+
+    $this->assertSoftDeleted('homepage_cta_buttons', [
+        'id' => $independentlyDeletedButton->id,
+    ]);
+});
+
 
 it('rejects restoring a homepage CTA that is not deleted', function () {
     $homepageCta = HomepageCta::query()->create([
@@ -356,7 +411,7 @@ it('rejects restoring a homepage CTA that is not deleted', function () {
         'is_active' => true,
     ]);
 
-    expect(fn () => app(HomepageCtaService::class)->restore($homepageCta))
+    expect(fn() => app(HomepageCtaService::class)->restore($homepageCta))
         ->toThrow(DomainException::class);
 
     $this->assertDatabaseHas('homepage_ctas', [
@@ -445,7 +500,7 @@ it('rejects duplicate button uuids during update and rolls back changes', functi
         ],
     );
 
-    expect(fn () => app(HomepageCtaService::class)->update(
+    expect(fn() => app(HomepageCtaService::class)->update(
         $homepageCta,
         $data,
     ))->toThrow(InvalidArgumentException::class);
@@ -469,7 +524,7 @@ it('rejects creating a homepage CTA without buttons', function () {
         buttons: [],
     );
 
-    expect(fn () => app(HomepageCtaService::class)->create($data))
+    expect(fn() => app(HomepageCtaService::class)->create($data))
         ->toThrow(InvalidArgumentException::class);
 
     expect(HomepageCta::query()->count())->toBe(0);
@@ -500,7 +555,7 @@ it('rejects updating a homepage CTA without buttons and preserves existing data'
         buttons: [],
     );
 
-    expect(fn () => app(HomepageCtaService::class)->update(
+    expect(fn() => app(HomepageCtaService::class)->update(
         $homepageCta,
         $data,
     ))->toThrow(InvalidArgumentException::class);
