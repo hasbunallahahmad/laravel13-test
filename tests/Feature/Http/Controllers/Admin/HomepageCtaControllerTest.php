@@ -268,6 +268,33 @@ test('user with create permission can store homepage cta with buttons', function
     ]);
 });
 
+test('user without create permission cannot store homepage cta', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)
+        ->post(route('admin.homepage-ctas.store'), [
+            'title' => 'CTA Tanpa Izin',
+            'description' => 'Pengujian otorisasi.',
+            'sort_order' => 0,
+            'is_active' => true,
+            'buttons' => [
+                [
+                    'label' => 'Lihat Layanan',
+                    'type' => 'url',
+                    'url' => '/layanan',
+                    'target' => '_self',
+                    'sort_order' => 0,
+                    'is_active' => true,
+                ],
+            ],
+        ])
+        ->assertForbidden();
+
+    $this->assertDatabaseMissing('homepage_ctas', [
+        'title' => 'CTA Tanpa Izin',
+    ]);
+});
+
 test('homepage cta store rejects unsafe button destinations', function (string $url) {
     $user = User::factory()->create();
     $user->givePermissionTo('homepage-ctas.create');
