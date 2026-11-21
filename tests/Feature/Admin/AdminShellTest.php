@@ -82,7 +82,7 @@ test('settings navigation is hidden without settings permission', function () {
     $response->assertOk();
 
     $response->assertDontSee(
-        'href="' . route('admin.settings.index') . '"',
+        'href="'.route('admin.settings.index').'"',
         false,
     );
 });
@@ -102,7 +102,7 @@ test('settings navigation is visible with settings permission', function () {
     $response->assertOk();
 
     $response->assertSee(
-        'href="' . route('admin.settings.index') . '"',
+        'href="'.route('admin.settings.index').'"',
         false,
     );
 });
@@ -119,7 +119,7 @@ test('content navigation is hidden without content permission', function () {
     $response->assertOk();
 
     $response->assertDontSee(
-        'href="' . route('admin.contents.index') . '"',
+        'href="'.route('admin.contents.index').'"',
         false,
     );
 });
@@ -139,7 +139,7 @@ test('content navigation is visible with content permission', function () {
     $response->assertOk();
 
     $response->assertSee(
-        'href="' . route('admin.contents.index') . '"',
+        'href="'.route('admin.contents.index').'"',
         false,
     );
 });
@@ -157,7 +157,7 @@ test('user menu displays account settings link', function () {
 
     $response->assertSee('Account Settings');
     $response->assertSee(
-        'href="' . route('profile.edit') . '"',
+        'href="'.route('profile.edit').'"',
         false,
     );
 });
@@ -174,7 +174,7 @@ test('media navigation is hidden without media permission', function () {
     $response->assertOk();
 
     $response->assertDontSee(
-        'href="' . route('admin.media.index') . '"',
+        'href="'.route('admin.media.index').'"',
         false,
     );
 });
@@ -194,7 +194,7 @@ test('media navigation is visible with media permission', function () {
     $response->assertOk();
 
     $response->assertSee(
-        'href="' . route('admin.media.index') . '"',
+        'href="'.route('admin.media.index').'"',
         false,
     );
 });
@@ -211,7 +211,7 @@ test('menu navigation is hidden without menus permission', function () {
     $response->assertOk();
 
     $response->assertDontSee(
-        'href="' . route('admin.menus.index') . '"',
+        'href="'.route('admin.menus.index').'"',
         false,
     );
 });
@@ -231,7 +231,7 @@ test('menu navigation is visible with menus permission', function () {
     $response->assertOk();
 
     $response->assertSee(
-        'href="' . route('admin.menus.index') . '"',
+        'href="'.route('admin.menus.index').'"',
         false,
     );
 });
@@ -272,4 +272,36 @@ test('menu index renders admin shell', function () {
     $response->assertSee('Menu Management');
     $response->assertSee('Dashboard');
     $response->assertSee('Settings');
+});
+
+test('admin shell displays success flash notification', function () {
+    $user = User::factory()->create();
+
+    $user->givePermissionTo('dashboard.view');
+
+    $response = $this
+        ->actingAs($user)
+        ->withSession([
+            'success' => 'Setting updated successfully.',
+        ])
+        ->get(route('admin.dashboard'));
+
+    $response->assertOk();
+    $response->assertSee('Setting updated successfully.');
+});
+
+test('admin shell displays error flash notification', function () {
+    $user = User::factory()->create();
+
+    $user->givePermissionTo('dashboard.view');
+
+    $response = $this
+        ->actingAs($user)
+        ->withSession([
+            'error' => 'Unable to complete the operation.',
+        ])
+        ->get(route('admin.dashboard'));
+
+    $response->assertOk();
+    $response->assertSee('Unable to complete the operation.');
 });

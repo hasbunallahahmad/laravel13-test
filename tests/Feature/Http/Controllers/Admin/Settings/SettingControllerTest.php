@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use App\Models\User;
 use App\Models\Setting;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Spatie\Permission\Models\Permission;
 
@@ -91,7 +91,11 @@ test('user with settings update permission can update a setting', function () {
             'is_public' => true,
         ]);
 
-    $response->assertOk();
+    $response->assertRedirect(route('admin.settings.index'));
+    $response->assertSessionHas(
+        'success',
+        'Setting updated successfully.',
+    );
 
     $this->assertDatabaseHas('settings', [
         'group' => 'general',
@@ -122,7 +126,7 @@ test('user with settings update permission updates an existing setting without c
             'is_public' => true,
         ]);
 
-    $response->assertOk();
+    $response->assertRedirect(route('admin.settings.index'));
 
     $this->assertDatabaseCount('settings', 1);
 
@@ -272,7 +276,7 @@ test('setting update uses group and key from route parameters', function () {
             'is_public' => true,
         ]);
 
-    $response->assertOk();
+    $response->assertRedirect(route('admin.settings.index'));
 
     $this->assertDatabaseHas('settings', [
         'group' => 'general',
@@ -592,7 +596,7 @@ test('user with settings update permission can update an existing setting using 
             'value' => 'Website Arpus Kota Semarang',
         ]);
 
-    $response->assertOk();
+    $response->assertRedirect(route('admin.settings.index'));
 
     $this->assertDatabaseHas('settings', [
         'group' => 'general',
@@ -625,7 +629,7 @@ test('existing setting metadata cannot be changed through the update request', f
             'is_public' => false,
         ]);
 
-    $response->assertOk();
+    $response->assertRedirect(route('admin.settings.index'));
 
     $setting->refresh();
 
@@ -717,7 +721,7 @@ test('existing boolean setting can be updated from true to false', function () {
             'value' => '0',
         ]);
 
-    $response->assertOk();
+    $response->assertRedirect(route('admin.settings.index'));
 
     $setting->refresh();
 
@@ -743,7 +747,7 @@ test('existing boolean setting can be updated from false to true', function () {
             'value' => '1',
         ]);
 
-    $response->assertOk();
+    $response->assertRedirect(route('admin.settings.index'));
 
     $setting->refresh();
 
@@ -810,7 +814,7 @@ test('existing json setting can be updated with valid json', function () {
             'value' => $newValue,
         ]);
 
-    $response->assertOk();
+    $response->assertRedirect(route('admin.settings.index'));
 
     $setting->refresh();
 
