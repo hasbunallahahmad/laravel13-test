@@ -8,7 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Settings\UpdateSettingRequest;
 use App\Models\Setting;
 use App\Services\Settings\SettingsManager;
-use Illuminate\Http\Response;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
@@ -52,7 +52,7 @@ final class SettingController extends Controller
      */
     public function update(
         UpdateSettingRequest $request,
-    ): Response {
+    ): RedirectResponse {
         abort_unless(
             Auth::user()?->can('settings.update'),
             403,
@@ -62,6 +62,8 @@ final class SettingController extends Controller
             $request->toData(),
         );
 
-        return response('', 200);
+        return redirect()
+            ->route('admin.settings.index')
+            ->with('success', 'Setting updated successfully.');
     }
 }

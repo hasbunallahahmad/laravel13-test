@@ -19,36 +19,31 @@
             <flux:sidebar.group :heading="__('Administration')" class="grid">
 
                 @can('dashboard.view')
-                    <flux:sidebar.item icon="layout-grid" :href="route('admin.dashboard')"
-                        :current="request()->routeIs('admin.dashboard')" wire:navigate>
+                    <flux:sidebar.item icon="layout-grid" :href="route('admin.dashboard')" :current="request()->routeIs('admin.dashboard')" wire:navigate>
                         {{ __('Dashboard') }}
                     </flux:sidebar.item>
                 @endcan
 
                 @can('content.view')
-                    <flux:sidebar.item icon="document-text" :href="route('admin.contents.index')"
-                        :current="request()->routeIs('admin.contents.*')" wire:navigate>
+                    <flux:sidebar.item icon="document-text" :href="route('admin.contents.index')" :current="request()->routeIs('admin.contents.*')" wire:navigate>
                         {{ __('Content') }}
                     </flux:sidebar.item>
                 @endcan
 
                 @can('media.view')
-                    <flux:sidebar.item icon="photo" :href="route('admin.media.index')"
-                        :current="request()->routeIs('admin.media.*')" wire:navigate>
+                    <flux:sidebar.item icon="photo" :href="route('admin.media.index')" :current="request()->routeIs('admin.media.*')" wire:navigate>
                         {{ __('Media') }}
                     </flux:sidebar.item>
                 @endcan
 
                 @can('menus.view')
-                    <flux:sidebar.item icon="bars-3" :href="route('admin.menus.index')"
-                        :current="request()->routeIs('admin.menus.*')" wire:navigate>
+                    <flux:sidebar.item icon="bars-3" :href="route('admin.menus.index')" :current="request()->routeIs('admin.menus.*')" wire:navigate>
                         {{ __('Menu') }}
                     </flux:sidebar.item>
                 @endcan
 
                 @can('settings.view')
-                    <flux:sidebar.item icon="cog-6-tooth" :href="route('admin.settings.index')"
-                        :current="request()->routeIs('admin.settings.*')" wire:navigate>
+                    <flux:sidebar.item icon="cog-6-tooth" :href="route('admin.settings.index')" :current="request()->routeIs('admin.settings.*')" wire:navigate>
                         {{ __('Settings') }}
                     </flux:sidebar.item>
                 @endcan
@@ -73,6 +68,20 @@
     </flux:header>
 
     <flux:main>
+        <div class="mx-auto w-full max-w-7xl px-4 pt-4 sm:px-6 lg:px-8">
+            @if (session('success'))
+                <div role="alert" class="mb-4 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800 dark:border-green-900 dark:bg-green-950 dark:text-green-200">
+                    {{ session('success') }}
+                </div>
+            @endif
+
+            @if (session('error'))
+                <div role="alert" class="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 dark:border-red-900 dark:bg-red-950 dark:text-red-200">
+                    {{ session('error') }}
+                </div>
+            @endif
+        </div>
+
         {{ $slot }}
     </flux:main>
 
