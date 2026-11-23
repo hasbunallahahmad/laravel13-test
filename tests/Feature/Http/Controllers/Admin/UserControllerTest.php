@@ -766,9 +766,28 @@ test('user without users update permission cannot restore a deleted user', funct
 
     expect($managedUser->fresh()->trashed())->toBeTrue();
 });
+
+test('user with users restore permission can restore a deleted user without users update permission', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo('users.restore');
+
+    $managedUser = User::factory()->create();
+    $managedUser->delete();
+
+    $response = $this
+        ->actingAs($user)
+        ->patch(route('admin.users.restore', $managedUser->uuid));
+
+    $response
+        ->assertRedirect(route('admin.users.index'))
+        ->assertSessionHas('success');
+
+    expect($managedUser->fresh()->trashed())->toBeFalse();
+});
+
 test('active user cannot be restored', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo('users.update');
+    $user->givePermissionTo('users.restore');
 
     $managedUser = User::factory()->create();
 
@@ -782,7 +801,7 @@ test('active user cannot be restored', function () {
 });
 test('restoring a user preserves their existing role', function () {
     $user = User::factory()->create();
-    $user->givePermissionTo('users.update');
+    $user->givePermissionTo('users.restore');
 
     $managedUser = User::factory()->create();
     $managedUser->assignRole('editor');

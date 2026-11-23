@@ -220,4 +220,59 @@ class DatabaseSeederTest extends TestCase
             }
         }
     }
+
+    public function test_role_permission_seeder_creates_users_restore_permission(): void
+    {
+        $this->seed(RolePermissionSeeder::class);
+
+        $this->assertDatabaseHas('permissions', [
+            'name' => 'users.restore',
+            'guard_name' => 'web',
+        ]);
+    }
+
+    public function test_admin_role_has_users_restore_permission(): void
+    {
+        $this->seed(RolePermissionSeeder::class);
+
+        $admin = Role::query()
+            ->where('name', 'admin')
+            ->firstOrFail();
+
+        $this->assertTrue($admin->hasPermissionTo('users.restore'));
+    }
+
+    public function test_super_admin_role_has_users_restore_permission(): void
+    {
+        $this->seed(RolePermissionSeeder::class);
+
+        $superAdmin = Role::query()
+            ->where('name', 'super-admin')
+            ->firstOrFail();
+
+        $this->assertTrue($superAdmin->hasPermissionTo('users.restore'));
+    }
+
+    public function test_other_roles_do_not_have_users_restore_permission(): void
+    {
+        $this->seed(RolePermissionSeeder::class);
+
+        $roles = [
+            'editor',
+            'author',
+            'contributor',
+            'viewer',
+        ];
+
+        foreach ($roles as $roleName) {
+            $role = Role::query()
+                ->where('name', $roleName)
+                ->firstOrFail();
+
+            $this->assertFalse(
+                $role->hasPermissionTo('users.restore'),
+                "Role [{$roleName}] unexpectedly has permission [users.restore]."
+            );
+        }
+    }
 }

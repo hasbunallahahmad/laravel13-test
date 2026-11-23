@@ -19,6 +19,16 @@ test('login screen can be rendered', function () {
     $response->assertOk();
 });
 
+test('authenticated users visiting login are redirected to admin dashboard', function () {
+    $user = User::factory()->create();
+
+    $response = $this
+        ->actingAs($user)
+        ->get(route('login'));
+
+    $response->assertRedirect(route('admin.dashboard', absolute: false));
+});
+
 test('active users can authenticate with valid credentials and valid turnstile', function () {
     $user = User::factory()->create();
 
