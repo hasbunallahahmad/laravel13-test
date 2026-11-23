@@ -11,7 +11,23 @@ final class UpdateUserRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->canAssignRole($this->input('role'));
+        $actor = $this->user();
+        $target = $this->route('user');
+
+        if (
+            $target->hasAnyRole(['admin', 'super-admin'])
+            && ! $actor->hasRole('super-admin')
+        ) {
+            return false;
+        }
+
+        $role = $this->input('role');
+
+        if (! is_string($role) && $role !== null) {
+            return true;
+        }
+
+        return $this->canAssignRole($role);
     }
 
     private function canAssignRole(?string $role): bool
@@ -53,7 +69,7 @@ final class UpdateUserRequest extends FormRequest
                 'nullable',
                 'string',
                 Rule::exists('roles', 'name')
-                    ->where(fn($query) => $query->where('guard_name', 'web')),
+                    ->where(fn ($query) => $query->where('guard_name', 'web')),
             ],
         ];
     }

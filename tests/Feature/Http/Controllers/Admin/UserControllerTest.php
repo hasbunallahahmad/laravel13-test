@@ -589,6 +589,50 @@ test('admin cannot assign super admin role to another user', function () {
     expect($managedUser->fresh()->hasRole('super-admin'))->toBeFalse();
 });
 
+test('admin cannot update another admin account', function () {
+    $admin = User::factory()->create();
+    $admin->assignRole('admin');
+
+    $managedAdmin = User::factory()->create();
+    $managedAdmin->assignRole('admin');
+
+    $originalEmail = $managedAdmin->email;
+
+    $response = $this
+        ->actingAs($admin)
+        ->patch(route('admin.users.update', $managedAdmin->uuid), [
+            'name' => 'Changed Name',
+            'email' => 'changed@example.com',
+        ]);
+
+    $response->assertForbidden();
+
+    expect($managedAdmin->fresh()->name)->not->toBe('Changed Name')
+        ->and($managedAdmin->fresh()->email)->toBe($originalEmail);
+});
+
+test('admin cannot update a super admin account', function () {
+    $admin = User::factory()->create();
+    $admin->assignRole('admin');
+
+    $superAdmin = User::factory()->create();
+    $superAdmin->assignRole('super-admin');
+
+    $originalEmail = $superAdmin->email;
+
+    $response = $this
+        ->actingAs($admin)
+        ->patch(route('admin.users.update', $superAdmin->uuid), [
+            'name' => 'Changed Name',
+            'email' => 'changed@example.com',
+        ]);
+
+    $response->assertForbidden();
+
+    expect($superAdmin->fresh()->name)->not->toBe('Changed Name')
+        ->and($superAdmin->fresh()->email)->toBe($originalEmail);
+});
+
 test('super admin can assign admin role to another user', function () {
     $superAdmin = User::factory()->create();
     $superAdmin->assignRole('super-admin');
@@ -956,4 +1000,24 @@ test('user without force delete permission cannot see force delete action in tra
             route('admin.users.force-destroy', $deletedUser->uuid),
             false,
         );
+});
+
+test('rejects an array as the role input', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo('users.update');
+
+    $managedUser = User::factory()->create();
+
+    $response = $this
+        ->actingAs($user)
+        ->patch(route('admin.users.update', $managedUser->uuid), [
+            'name' => $managedUser->name,
+            'email' => $managedUser->email,
+            'role' => ['super-admin'],
+        ]);
+
+    $response->assertRedirect()
+        ->assertSessionHasErrors('role');
+
+    expect($managedUser->fresh()->roles)->toBeEmpty();
 });
