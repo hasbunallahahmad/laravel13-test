@@ -29,7 +29,7 @@ test('admin menu index displays menus', function () {
 
     $user->givePermissionTo('menus.view');
 
-    $menu = \App\Models\Menu::factory()->create([
+    $menu = Menu::factory()->create([
         'name' => 'profile',
         'label' => 'Profil',
     ]);
@@ -45,13 +45,13 @@ test('admin menu index displays menus ordered by sort order', function () {
 
     $user->givePermissionTo('menus.view');
 
-    \App\Models\Menu::factory()->create([
+    Menu::factory()->create([
         'name' => 'contact',
         'label' => 'Kontak',
         'sort_order' => 20,
     ]);
 
-    \App\Models\Menu::factory()->create([
+    Menu::factory()->create([
         'name' => 'home',
         'label' => 'Beranda',
         'sort_order' => 10,
@@ -72,13 +72,13 @@ test('admin menu index displays parent and child menus', function () {
 
     $user->givePermissionTo('menus.view');
 
-    $parent = \App\Models\Menu::factory()->create([
+    $parent = Menu::factory()->create([
         'name' => 'services',
         'label' => 'Layanan',
         'sort_order' => 10,
     ]);
 
-    \App\Models\Menu::factory()->create([
+    Menu::factory()->create([
         'parent_id' => $parent->id,
         'name' => 'library',
         'label' => 'Perpustakaan',
@@ -96,12 +96,12 @@ test('admin menu index does not display soft deleted menus', function () {
 
     $user->givePermissionTo('menus.view');
 
-    \App\Models\Menu::factory()->create([
+    Menu::factory()->create([
         'name' => 'active-menu',
         'label' => 'Menu Aktif',
     ]);
 
-    $deletedMenu = \App\Models\Menu::factory()->create([
+    $deletedMenu = Menu::factory()->create([
         'name' => 'deleted-menu',
         'label' => 'Menu Terhapus',
     ]);
@@ -120,13 +120,13 @@ test('admin menu index displays menu status', function () {
 
     $user->givePermissionTo('menus.view');
 
-    \App\Models\Menu::factory()->create([
+    Menu::factory()->create([
         'name' => 'active-menu',
         'label' => 'Beranda',
         'is_active' => true,
     ]);
 
-    \App\Models\Menu::factory()->create([
+    Menu::factory()->create([
         'name' => 'inactive-menu',
         'label' => 'Profil',
         'is_active' => false,
@@ -147,7 +147,7 @@ test('admin menu index displays menu type', function () {
 
     $user->givePermissionTo('menus.view');
 
-    \App\Models\Menu::factory()->create([
+    Menu::factory()->create([
         'name' => 'home',
         'label' => 'Beranda',
         'type' => 'route',
@@ -155,7 +155,7 @@ test('admin menu index displays menu type', function () {
         'url' => null,
     ]);
 
-    \App\Models\Menu::factory()->create([
+    Menu::factory()->create([
         'name' => 'external',
         'label' => 'Website Eksternal',
         'type' => 'url',
@@ -178,7 +178,7 @@ test('admin menu index displays menu target', function () {
 
     $user->givePermissionTo('menus.view');
 
-    \App\Models\Menu::factory()->create([
+    Menu::factory()->create([
         'name' => 'home',
         'label' => 'Beranda',
         'type' => 'route',
@@ -186,7 +186,7 @@ test('admin menu index displays menu target', function () {
         'target' => '_self',
     ]);
 
-    \App\Models\Menu::factory()->create([
+    Menu::factory()->create([
         'name' => 'external',
         'label' => 'Website Eksternal',
         'type' => 'url',
@@ -207,7 +207,7 @@ test('admin menu index displays menu destination', function () {
 
     $user->givePermissionTo('menus.view');
 
-    \App\Models\Menu::factory()->create([
+    Menu::factory()->create([
         'name' => 'home',
         'label' => 'Beranda',
         'type' => 'route',
@@ -215,7 +215,7 @@ test('admin menu index displays menu destination', function () {
         'url' => null,
     ]);
 
-    \App\Models\Menu::factory()->create([
+    Menu::factory()->create([
         'name' => 'external',
         'label' => 'Website Eksternal',
         'type' => 'url',
@@ -236,7 +236,7 @@ test('admin menu index displays menu name', function () {
 
     $user->givePermissionTo('menus.view');
 
-    \App\Models\Menu::factory()->create([
+    Menu::factory()->create([
         'name' => 'document-archive',
         'label' => 'Arsip Dokumen',
     ]);
@@ -252,7 +252,7 @@ test('admin menu index displays menu icon', function () {
 
     $user->givePermissionTo('menus.view');
 
-    \App\Models\Menu::factory()->create([
+    Menu::factory()->create([
         'name' => 'library',
         'label' => 'Perpustakaan',
         'icon' => 'book-open',
@@ -269,7 +269,7 @@ test('admin menu index displays menu sort order', function () {
 
     $user->givePermissionTo('menus.view');
 
-    \App\Models\Menu::factory()->create([
+    Menu::factory()->create([
         'name' => 'about',
         'label' => 'Tentang Kami',
         'sort_order' => 25,
@@ -290,12 +290,12 @@ test('admin menu index displays parent menu relationship', function () {
 
     $user->givePermissionTo('menus.view');
 
-    $parent = \App\Models\Menu::factory()->create([
+    $parent = Menu::factory()->create([
         'name' => 'services',
         'label' => 'Layanan',
     ]);
 
-    $child = \App\Models\Menu::factory()->create([
+    $child = Menu::factory()->create([
         'parent_id' => $parent->id,
         'name' => 'library',
         'label' => 'Perpustakaan',
@@ -306,7 +306,7 @@ test('admin menu index displays parent menu relationship', function () {
         ->assertOk();
 
     $response->assertSee(
-        'data-parent-id="' . $parent->id . '"',
+        'data-parent-id="'.$parent->id.'"',
         false,
     );
 
@@ -400,7 +400,7 @@ test('admin menu create page displays url field', function () {
         ->get(route('admin.menus.create'))
         ->assertOk();
 
-    $response->assertSee('name="url"', false);
+    $response->assertSee('<input id="url" type="text" name="url"', false);
 });
 
 test('admin menu create page displays target options', function () {
@@ -994,7 +994,6 @@ test('admin menu update rejects circular parent hierarchy', function () {
 
     $response->assertSessionHasErrors('parent_id');
 });
-
 
 test('admin menu update rejects soft deleted parent', function () {
     $user = User::factory()->create();
@@ -2722,7 +2721,7 @@ test('admin menu create page contains menu store form', function () {
 
     $response->assertOk()
         ->assertSee(
-            '<form action="' . route('admin.menus.store') . '" method="POST" data-menu-form>',
+            '<form action="'.route('admin.menus.store').'" method="POST" data-menu-form>',
             false,
         )
         ->assertSee(
@@ -2739,7 +2738,7 @@ test('admin menu create page contains save button', function () {
 
     $response->assertOk()
         ->assertSee(
-            '<form action="' . route('admin.menus.store') . '" method="POST" data-menu-form>',
+            '<form action="'.route('admin.menus.store').'" method="POST" data-menu-form>',
             false,
         )
         ->assertSee(
@@ -2757,7 +2756,7 @@ test('admin menu create page places save button inside menu store form', functio
 
     $response->assertOk()
         ->assertSee(
-            '<form action="' . route('admin.menus.store') . '" method="POST" data-menu-form>',
+            '<form action="'.route('admin.menus.store').'" method="POST" data-menu-form>',
             false,
         )
         ->assertSee(
@@ -2937,7 +2936,7 @@ test('admin menu create page preserves old parent selection after validation fai
 
     $response->assertOk()
         ->assertSee(
-            '<option value="' . $parentMenu->id . '" selected',
+            '<option value="'.$parentMenu->id.'" selected',
             false,
         )
         ->assertSee(
@@ -3019,7 +3018,7 @@ it('admin menu edit page contains menu update form', function () {
         ->assertOk()
         ->assertSee('<form', false)
         ->assertSee(
-            'action="' . route('admin.menus.update', $menu) . '"',
+            'action="'.route('admin.menus.update', $menu).'"',
             false
         )
         ->assertSee('method="POST"', false)
@@ -3051,7 +3050,7 @@ it('admin menu edit page contains all menu form fields', function () {
         ->assertSee('name="name"', false)
         ->assertSee('name="label"', false)
         ->assertSee('name="type"', false)
-        ->assertSee('name="url"', false)
+        ->assertSee('<input id="url" type="text" name="url"', false)
         ->assertSee('name="route_name"', false)
         ->assertSee('name="target"', false)
         ->assertSee('name="icon"', false)
@@ -3194,7 +3193,7 @@ it('admin menu edit page displays the existing parent menu', function () {
         ->assertOk()
         ->assertSee('Parent Menu')
         ->assertSee(
-            '<option value="' . $parent->id . '" selected',
+            '<option value="'.$parent->id.'" selected',
             false
         );
 });
@@ -3266,7 +3265,7 @@ it('admin menu edit page does not allow the menu itself as parent', function () 
     $response
         ->assertOk()
         ->assertDontSee(
-            '<option value="' . $menu->id . '"',
+            '<option value="'.$menu->id.'"',
             false
         );
 });
@@ -3355,7 +3354,7 @@ test('admin menu index provides delete action for each menu', function () {
 
     $response->assertOk()
         ->assertSee(
-            'action="' . route('admin.menus.destroy', $menu) . '"',
+            'action="'.route('admin.menus.destroy', $menu).'"',
             false
         );
 });
@@ -3442,7 +3441,7 @@ test('admin menu trash provides restore action for trashed menu', function () {
 
     $response->assertOk()
         ->assertSee(
-            'action="' . route('admin.menus.restore', $menu) . '"',
+            'action="'.route('admin.menus.restore', $menu).'"',
             false
         );
 });
@@ -3464,7 +3463,7 @@ test('admin menu trash hides restore action without restore permission', functio
 
     $response->assertOk()
         ->assertDontSee(
-            'action="' . route('admin.menus.restore', $menu) . '"',
+            'action="'.route('admin.menus.restore', $menu).'"',
             false
         );
 });
@@ -3707,20 +3706,20 @@ test('admin menu index renders nested menu hierarchy', function () {
 
     $user->givePermissionTo('menus.view');
 
-    $parent = \App\Models\Menu::factory()->create([
+    $parent = Menu::factory()->create([
         'name' => 'services',
         'label' => 'Layanan',
         'sort_order' => 10,
     ]);
 
-    $child = \App\Models\Menu::factory()->create([
+    $child = Menu::factory()->create([
         'parent_id' => $parent->id,
         'name' => 'library',
         'label' => 'Perpustakaan',
         'sort_order' => 10,
     ]);
 
-    $grandchild = \App\Models\Menu::factory()->create([
+    $grandchild = Menu::factory()->create([
         'parent_id' => $child->id,
         'name' => 'digital-library',
         'label' => 'Perpustakaan Digital',
@@ -3975,7 +3974,6 @@ test('admin menu permissions are granular', function () {
         ->delete(route('admin.menus.force-delete', $menu))
         ->assertForbidden();
 });
-
 
 test('admin menu store accepts safe local paths', function () {
     $user = User::factory()->create();

@@ -126,11 +126,6 @@ final class HomepageCtaService
     }
 
     /**
-     * Restore a soft deleted homepage CTA.
-     *
-     * Previously deleted buttons remain deleted.
-     */
-    /**
      * Restore a soft deleted homepage CTA and buttons deleted with it.
      */
     public function restore(HomepageCta $homepageCta): HomepageCta
