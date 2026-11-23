@@ -3,8 +3,7 @@
         <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
                 <div class="flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400">
-                    <a href="{{ route('admin.menus.index') }}"
-                        class="transition hover:text-zinc-900 dark:hover:text-white">
+                    <a href="{{ route('admin.menus.index') }}" class="transition hover:text-zinc-900 dark:hover:text-white">
                         Menu Management
                     </a>
 
@@ -37,10 +36,8 @@
             <div class="rounded-xl border border-red-200 bg-red-50 p-4 dark:border-red-500/30 dark:bg-red-500/10">
                 <div class="flex gap-3">
                     <div class="mt-0.5 shrink-0 text-red-600 dark:text-red-400">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="size-5" fill="none" viewBox="0 0 24 24"
-                            stroke="currentColor" stroke-width="1.8">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M12 9v3.75m0 3.75h.008M10.29 3.86l-7.1 12.28A2 2 0 004.92 19h14.16a2 2 0 001.73-2.86L13.71 3.86a2 2 0 00-3.42 0z" />
+                        <svg xmlns="http://www.w3.org/2000/svg" class="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m0 3.75h.008M10.29 3.86l-7.1 12.28A2 2 0 004.92 19h14.16a2 2 0 001.73-2.86L13.71 3.86a2 2 0 00-3.42 0z" />
                         </svg>
                     </div>
 
@@ -63,8 +60,7 @@
             @csrf
             @method('PATCH')
 
-            <div
-                class="overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
+            <div class="overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
                 <div class="border-b border-zinc-200 px-6 py-5 dark:border-zinc-700">
                     <h2 class="text-base font-semibold text-zinc-900 dark:text-white">
                         Informasi Menu
@@ -161,8 +157,7 @@
                             Route Name
                         </label>
 
-                        <input id="route_name" type="text" name="route_name"
-                            value="{{ old('route_name', $menu->route_name) }}" data-menu-route-input
+                        <input id="route_name" type="text" name="route_name" value="{{ old('route_name', $menu->route_name) }}" data-menu-route-input
                             class="mt-2 block w-full rounded-lg border-zinc-300 bg-white px-3 py-2.5 text-sm text-zinc-900 shadow-sm outline-none transition placeholder:text-zinc-400 focus:border-zinc-500 focus:ring-2 focus:ring-zinc-500/20 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white">
 
                         @error('route_name')
@@ -177,8 +172,7 @@
                             URL
                         </label>
 
-                        <input id="url" type="url" name="url" value="{{ old('url', $menu->url) }}"
-                            data-menu-url-input
+                        <input id="url" type="text" name="url" value="{{ old('url', $menu->url) }}" data-menu-url-input
                             class="mt-2 block w-full rounded-lg border-zinc-300 bg-white px-3 py-2.5 text-sm text-zinc-900 shadow-sm outline-none transition placeholder:text-zinc-400 focus:border-zinc-500 focus:ring-2 focus:ring-zinc-500/20 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white">
 
                         @error('url')
@@ -253,8 +247,7 @@
                             Sort Order
                         </label>
 
-                        <input id="sort_order" type="number" name="sort_order" min="0"
-                            value="{{ old('sort_order', $menu->sort_order) }}"
+                        <input id="sort_order" type="number" name="sort_order" min="0" value="{{ old('sort_order', $menu->sort_order) }}"
                             class="mt-2 block w-full rounded-lg border-zinc-300 bg-white px-3 py-2.5 text-sm text-zinc-900 shadow-sm outline-none transition focus:border-zinc-500 focus:ring-2 focus:ring-zinc-500/20 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white">
 
                         @error('sort_order')
@@ -292,8 +285,7 @@
                     </div>
                 </div>
 
-                <div
-                    class="flex flex-col-reverse gap-3 border-t border-zinc-200 bg-zinc-50 px-6 py-4 dark:border-zinc-700 dark:bg-zinc-800/40 sm:flex-row sm:justify-end">
+                <div class="flex flex-col-reverse gap-3 border-t border-zinc-200 bg-zinc-50 px-6 py-4 dark:border-zinc-700 dark:bg-zinc-800/40 sm:flex-row sm:justify-end">
                     <a href="{{ route('admin.menus.index') }}"
                         class="inline-flex items-center justify-center rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700">
                         Batal
