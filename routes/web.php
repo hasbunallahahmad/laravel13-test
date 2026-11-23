@@ -303,7 +303,7 @@ Route::middleware(['auth'])
             ->name('users.trash');
 
         Route::patch('/users/{user}/restore', [UserController::class, 'restore'])
-            ->middleware('permission:users.update')
+            ->middleware('permission:users.restore')
             ->name('users.restore');
 
         Route::delete('/users/{user}/force-destroy', [UserController::class, 'forceDestroy'])

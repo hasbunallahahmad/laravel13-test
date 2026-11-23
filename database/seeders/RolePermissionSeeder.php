@@ -35,6 +35,7 @@ final class RolePermissionSeeder extends Seeder
             'users.create',
             'users.update',
             'users.delete',
+            'users.restore',
             'users.force-delete',
 
             // Roles
@@ -152,6 +153,7 @@ final class RolePermissionSeeder extends Seeder
             'users.view',
             'users.create',
             'users.update',
+            'users.restore',
 
             'content.view',
             'content.create',
