@@ -39,22 +39,48 @@ final class MediaService
         return $media->refresh();
     }
 
+
     public function forceDelete(Media $media): void
     {
         $variantPaths = $this->extractVariantPaths($media);
 
-        $media->forceDelete();
+        // Delete processed variants first.
+        foreach ($variantPaths as $variantPath) {
+            $deleted = $this->storage->deleteVariant(
+                $media->disk,
+                $media->path,
+                $media->file_name,
+                $variantPath,
+            );
 
-        $this->storage->delete(
+            if (! $deleted) {
+                throw new \RuntimeException(
+                    'Failed to delete a processed media variant.',
+                );
+            }
+        }
+
+        // Delete the original file only after variants succeed.
+        $originalDeleted = $this->storage->delete(
             $media->disk,
             $media->path,
             $media->file_name,
         );
 
-        foreach ($variantPaths as $variantPath) {
-            Storage::disk($media->disk)->delete($variantPath);
+        if (! $originalDeleted) {
+            throw new \RuntimeException(
+                'Failed to delete the original media file.',
+            );
+        }
+
+        // Finally, remove the database record.
+        if ($media->forceDelete() === false) {
+            throw new \RuntimeException(
+                'Failed to delete the media database record.',
+            );
         }
     }
+
 
 
     /**
@@ -68,18 +94,33 @@ final class MediaService
             return [];
         }
 
-        return array_values(
-            array_filter(
-                $variants,
-                static fn (mixed $path): bool =>
-                    is_string($path) && $path !== '',
-            ),
-        );
+        $directory = trim($media->path, '/');
+        $filename = pathinfo($media->file_name, PATHINFO_FILENAME);
+
+        $expectedPaths = [
+            'webp' => "{$directory}/{$filename}.webp",
+            'thumbnail' => "{$directory}/{$filename}-thumb.webp",
+        ];
+
+        $paths = [];
+
+        foreach ($expectedPaths as $key => $expectedPath) {
+            $actualPath = $variants[$key] ?? null;
+
+            if (
+                is_string($actualPath)
+                && hash_equals($expectedPath, $actualPath)
+            ) {
+                $paths[] = $actualPath;
+            }
+        }
+
+        return $paths;
     }
 
     private function uploadImage(MediaUploadData $data): Media
     {
-        $directory = 'media/'.now()->format('Y/m');
+        $directory = 'media/' . now()->format('Y/m');
 
         $filename = (string) Str::uuid();
 
@@ -194,7 +235,7 @@ final class MediaService
             array_values(
                 array_filter(
                     $paths,
-                    static fn (?string $path): bool => $path !== null,
+                    static fn(?string $path): bool => $path !== null,
                 ),
             ),
         );

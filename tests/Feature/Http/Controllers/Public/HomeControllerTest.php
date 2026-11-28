@@ -216,7 +216,7 @@ it('adds safe rel attributes to external menus opened in a new tab', function ()
             $response->getContent(),
             'target="_blank" rel="noopener noreferrer"',
         ),
-    )->toBe(2);
+    )->toBe(4);
 });
 
 it('rejects external menu URLs containing user credentials', function (): void {

@@ -76,3 +76,42 @@ test('it can delete stored media', function () {
             . $stored['file_name'],
     );
 });
+
+test('it throws when uploaded media cannot be stored', function () {
+    $file = UploadedFile::fake()->image('failed-upload.jpg');
+
+    Storage::shouldReceive('disk')
+        ->once()
+        ->with('public')
+        ->andReturn(new class
+        {
+            public function putFileAs(
+                string $directory,
+                UploadedFile $file,
+                string $fileName,
+            ): false {
+                return false;
+            }
+        });
+
+    expect(
+        fn() => app(MediaStorageService::class)->store($file),
+    )->toThrow(RuntimeException::class);
+});
+
+test('it rejects paths outside the media directory', function () {
+    Storage::disk('public')->put(
+        'important.txt',
+        'Do not delete this file.',
+    );
+
+    expect(
+        fn() => app(MediaStorageService::class)->delete(
+            'public',
+            '../',
+            'important.txt',
+        ),
+    )->toThrow(InvalidArgumentException::class);
+
+    Storage::disk('public')->assertExists('important.txt');
+});

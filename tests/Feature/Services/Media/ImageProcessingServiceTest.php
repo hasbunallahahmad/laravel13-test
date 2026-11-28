@@ -11,6 +11,7 @@ beforeEach(function () {
     $this->service = app(ImageProcessingService::class);
 });
 
+
 it('cleans up the original asset when webp processing fails', function () {
     $file = UploadedFile::fake()->image(
         'failed-webp.jpg',
@@ -21,15 +22,18 @@ it('cleans up the original asset when webp processing fails', function () {
     $disk = Storage::disk('public');
 
     $diskMock = Mockery::mock();
+
     $diskMock->shouldReceive('put')
         ->once()
         ->with(
             'media/test/failed-webp.jpg',
             Mockery::type('string'),
         )
-        ->andReturnUsing(function (string $path, string $contents) use ($disk): bool {
-            return $disk->put($path, $contents);
-        });
+        ->andReturnUsing(
+            function (string $path, string $contents) use ($disk): bool {
+                return $disk->put($path, $contents);
+            },
+        );
 
     $diskMock->shouldReceive('put')
         ->once()
@@ -37,11 +41,18 @@ it('cleans up the original asset when webp processing fails', function () {
             'media/test/failed-webp.webp',
             Mockery::type('string'),
         )
-        ->andThrow(new RuntimeException('Simulated WebP encoding failure.'));
+        ->andThrow(
+            new RuntimeException('Simulated WebP encoding failure.'),
+        );
 
     $diskMock->shouldReceive('delete')
         ->once()
-        ->with(['media/test/failed-webp.jpg']);
+        ->with(['media/test/failed-webp.jpg'])
+        ->andReturnUsing(
+            function (array $paths) use ($disk): bool {
+                return $disk->delete($paths);
+            },
+        );
 
     Storage::shouldReceive('disk')
         ->with('public')
@@ -57,8 +68,9 @@ it('cleans up the original asset when webp processing fails', function () {
             'Simulated WebP encoding failure.',
         );
 
-    $disk->assertExists('media/test/failed-webp.jpg');
+    $disk->assertMissing('media/test/failed-webp.jpg');
 });
+
 
 it('converts a jpeg image to webp while preserving the original', function () {
     $file = UploadedFile::fake()->image(

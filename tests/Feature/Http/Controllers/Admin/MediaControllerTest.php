@@ -921,8 +921,8 @@ test('force deleting media also deletes the physical file', function () {
 
     $user->givePermissionTo('media.force-delete');
 
-    $fileName = 'physical-file.jpg';
-    $filePath = 'media/test/' . $fileName;
+    $fileName = '550e8400-e29b-41d4-a716-446655440005.jpg';
+    $filePath = 'media/2026/11/' . $fileName;
 
     Storage::disk('public')->put(
         $filePath,
@@ -931,7 +931,7 @@ test('force deleting media also deletes the physical file', function () {
 
     $media = Media::factory()->create([
         'disk' => 'public',
-        'path' => 'media/test',
+        'path' => 'media/2026/11',
         'file_name' => $fileName,
     ]);
 

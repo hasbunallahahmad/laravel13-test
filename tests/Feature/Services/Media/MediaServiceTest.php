@@ -379,8 +379,8 @@ test('it rethrows the original exception after cleaning up stored file', functio
 test('it permanently deletes media and its stored file', function () {
     Storage::fake('public');
 
-    $fileName = 'force-delete-file.jpg';
-    $filePath = 'media/test/' . $fileName;
+    $fileName = '550e8400-e29b-41d4-a716-446655440000.jpg';
+    $filePath = 'media/2026/09/' . $fileName;
 
     Storage::disk('public')->put(
         $filePath,
@@ -389,18 +389,15 @@ test('it permanently deletes media and its stored file', function () {
 
     $media = Media::factory()->create([
         'disk' => 'public',
-        'path' => 'media/test',
+        'path' => 'media/2026/09',
         'file_name' => $fileName,
     ]);
 
     $media->delete();
 
-    expect($media->trashed())
-        ->toBeTrue();
+    expect($media->trashed())->toBeTrue();
 
-    Storage::disk('public')->assertExists(
-        $filePath,
-    );
+    Storage::disk('public')->assertExists($filePath);
 
     app(MediaService::class)->forceDelete($media);
 
@@ -410,14 +407,49 @@ test('it permanently deletes media and its stored file', function () {
             ->exists(),
     )->toBeFalse();
 
-    Storage::disk('public')->assertMissing(
-        $filePath,
-    );
+    Storage::disk('public')->assertMissing($filePath);
 });
 
-test('it permanently deletes the database record before deleting the stored file', function () {
-    $fileName = 'force-delete-order.jpg';
-    $filePath = 'media/test/' . $fileName;
+test('it does not delete files outside media directory from malformed variant metadata', function () {
+    Storage::fake('public');
+
+    Storage::disk('public')->put(
+        'important.txt',
+        'File lain yang tidak boleh terhapus.',
+    );
+
+    $fileName = '550e8400-e29b-41d4-a716-446655440001.jpg';
+    $filePath = 'media/2026/09/' . $fileName;
+
+    Storage::disk('public')->put(
+        $filePath,
+        'original image',
+    );
+
+    $media = Media::factory()->create([
+        'disk' => 'public',
+        'path' => 'media/2026/09',
+        'file_name' => $fileName,
+        'metadata' => [
+            'variants' => [
+                'webp' => '../../important.txt',
+            ],
+        ],
+    ]);
+
+    $media->delete();
+
+    app(MediaService::class)->forceDelete($media);
+
+    Storage::disk('public')->assertExists('important.txt');
+    Storage::disk('public')->assertMissing($filePath);
+});
+
+test('it permanently deletes the database record and stored file', function () {
+    Storage::fake('public');
+
+    $fileName = '550e8400-e29b-41d4-a716-446655440002.jpg';
+    $filePath = 'media/2026/09/' . $fileName;
 
     Storage::disk('public')->put(
         $filePath,
@@ -426,7 +458,7 @@ test('it permanently deletes the database record before deleting the stored file
 
     $media = Media::factory()->create([
         'disk' => 'public',
-        'path' => 'media/test',
+        'path' => 'media/2026/09',
         'file_name' => $fileName,
     ]);
 
@@ -440,10 +472,38 @@ test('it permanently deletes the database record before deleting the stored file
             ->exists(),
     )->toBeFalse();
 
-    Storage::disk('public')->assertMissing(
-        $filePath,
-    );
+    Storage::disk('public')->assertMissing($filePath);
 });
+
+// test('it permanently deletes the database record before deleting the stored file', function () {
+//     $fileName = 'force-delete-order.jpg';
+//     $filePath = 'media/test/' . $fileName;
+
+//     Storage::disk('public')->put(
+//         $filePath,
+//         'fake image content',
+//     );
+
+//     $media = Media::factory()->create([
+//         'disk' => 'public',
+//         'path' => 'media/test',
+//         'file_name' => $fileName,
+//     ]);
+
+//     $media->delete();
+
+//     app(MediaService::class)->forceDelete($media);
+
+//     expect(
+//         Media::withTrashed()
+//             ->whereKey($media->id)
+//             ->exists(),
+//     )->toBeFalse();
+
+//     Storage::disk('public')->assertMissing(
+//         $filePath,
+//     );
+// });
 
 test('it updates media metadata', function () {
     $media = Media::factory()->create([
@@ -596,4 +656,97 @@ test('it rethrows the original exception after cleaning up processed image files
 
     expect(Storage::disk('public')->allFiles('media'))
         ->toBe([]);
+});
+
+test('it preserves media database record when original file deletion fails', function () {
+    $fileName = '550e8400-e29b-41d4-a716-446655440004.jpg';
+    $filePath = 'media/2026/09/' . $fileName;
+
+    Storage::disk('public')->put(
+        $filePath,
+        'fake image content',
+    );
+
+    $media = Media::factory()->create([
+        'disk' => 'public',
+        'path' => 'media/2026/09',
+        'file_name' => $fileName,
+    ]);
+
+    $media->delete();
+
+    $diskMock = Mockery::mock();
+
+    $diskMock->shouldReceive('delete')
+        ->once()
+        ->with($filePath)
+        ->andReturn(false);
+
+    Storage::shouldReceive('disk')
+        ->with('public')
+        ->andReturn($diskMock);
+
+    expect(fn() => app(MediaService::class)->forceDelete($media))
+        ->toThrow(RuntimeException::class);
+
+    expect(
+        Media::withTrashed()
+            ->whereKey($media->id)
+            ->exists(),
+    )->toBeTrue();
+});
+
+
+test('it preserves media database record when variant deletion fails', function () {
+    $fileName = '550e8400-e29b-41d4-a716-446655440005.jpg';
+
+    $originalPath = 'media/2026/09/' . $fileName;
+    $webpPath = 'media/2026/09/550e8400-e29b-41d4-a716-446655440005.webp';
+
+    Storage::disk('public')->put($originalPath, 'original');
+    Storage::disk('public')->put($webpPath, 'webp');
+
+    // Keep a reference to the fake disk before mocking Storage.
+    $fakeDisk = Storage::disk('public');
+
+    $media = Media::factory()->create([
+        'disk' => 'public',
+        'path' => 'media/2026/09',
+        'file_name' => $fileName,
+        'metadata' => [
+            'variants' => [
+                'webp' => $webpPath,
+            ],
+        ],
+    ]);
+
+    $media->delete();
+
+    $diskMock = Mockery::mock();
+
+    // Variant deletion fails.
+    $diskMock->shouldReceive('delete')
+        ->once()
+        ->with($webpPath)
+        ->andReturnFalse();
+
+    // Original file must not be deleted.
+    $diskMock->shouldReceive('delete')
+        ->never()
+        ->with($originalPath);
+
+    Storage::shouldReceive('disk')
+        ->with('public')
+        ->andReturn($diskMock);
+
+    expect(fn() => app(MediaService::class)->forceDelete($media))
+        ->toThrow(RuntimeException::class);
+
+    // Database record must remain.
+    expect(
+        Media::withTrashed()->whereKey($media->id)->exists(),
+    )->toBeTrue();
+
+    // Original file must remain physically available.
+    expect($fakeDisk->exists($originalPath))->toBeTrue();
 });
